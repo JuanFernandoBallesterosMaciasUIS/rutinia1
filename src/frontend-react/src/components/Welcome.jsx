@@ -12,17 +12,27 @@ function Welcome() {
     }, 500); // Mantener sincronía con la guía (500ms)
   };
 
+  const handleScrollToFeatures = (e) => {
+    e.preventDefault();
+    const featuresSection = document.getElementById('features');
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center px-4 py-10 transition-all duration-500 ${
+      className={`bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500 ${
         isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 animate-fade-in'
       }`}
     >
-      <main className="relative w-full max-w-6xl">
-        {/* Hero: grid 2 columnas en desktop */}
-        <section className="grid items-center gap-10 lg:grid-cols-2">
-          {/* Columna Izquierda: Branding + texto + CTA */}
-          <div className="text-center lg:text-left space-y-6">
+      {/* Hero Section - Pantalla completa */}
+      <section className="min-h-screen flex items-center justify-center px-4 py-10">
+        <main className="relative w-full max-w-6xl">
+          {/* Hero: grid 2 columnas en desktop */}
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            {/* Columna Izquierda: Branding + texto + CTA */}
+            <div className="text-center lg:text-left space-y-6">
             {/* Logo + Marca */}
             <div className="flex items-center justify-center lg:justify-start select-none">
               <div className="relative flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 shadow-lg ring-1 ring-white/60 dark:ring-white/10 mr-2">
@@ -59,6 +69,7 @@ function Welcome() {
 
               <a
                 href="#features"
+                onClick={handleScrollToFeatures}
                 className="inline-flex items-center gap-2 px-6 md:px-7 py-3 rounded-lg font-semibold bg-white/70 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md transition-all"
               >
                 <span>Ver características</span>
@@ -129,51 +140,64 @@ function Welcome() {
               </div>
             </div>
           </div>
-        </section>
+          </div>
+        </main>
+      </section>
 
-        {/* Sección de características */}
-        <section id="features" className="mt-12 md:mt-16">
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
+      {/* Sección de características */}
+      <section id="features" className="px-4 py-16 md:py-20">
+        <div className="max-w-6xl mx-auto">
+          {/* Título de la sección */}
+          <div className="text-center mb-10 md:mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+              ¿Qué es Rutinia?
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Una aplicación diseñada para ayudarte a crear y mantener hábitos saludables de forma simple y efectiva.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
             {/* Feature 1 */}
-            <div className="group p-5 rounded-xl bg-white/70 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all">
-              <div className="w-11 h-11 rounded-lg bg-gradient-to-r from-green-400 to-emerald-500 text-white flex items-center justify-center shadow-md">
-                <span className="material-icons">calendar_today</span>
+            <div className="group p-6 rounded-xl bg-white/70 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-green-300 dark:hover:border-green-600 transition-all">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-green-400 to-emerald-500 text-white flex items-center justify-center shadow-md">
+                <span className="material-icons text-2xl">calendar_today</span>
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Seguimiento diario</h3>
-              <p className="mt-1.5 text-sm text-gray-600 dark:text-gray-300">
-                Registra tus hábitos día a día y mantén el foco con recordatorios y rachas.
+              <h3 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">Seguimiento diario</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                Crea hábitos personalizados con frecuencia diaria, semanal o mensual. Marca tus hábitos completados cada día y observa cómo se van formando tus rutinas. La aplicación te ayuda a mantener el foco registrando tu progreso de manera visual e intuitiva.
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="group p-5 rounded-xl bg-white/70 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all">
-              <div className="w-11 h-11 rounded-lg bg-gradient-to-r from-indigo-400 to-cyan-500 text-white flex items-center justify-center shadow-md">
-                <span className="material-icons">insights</span>
+            <div className="group p-6 rounded-xl bg-white/70 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-600 transition-all">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-indigo-400 to-cyan-500 text-white flex items-center justify-center shadow-md">
+                <span className="material-icons text-2xl">insights</span>
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Estadísticas claras</h3>
-              <p className="mt-1.5 text-sm text-gray-600 dark:text-gray-300">
-                Visualiza tu progreso con métricas y gráficos simples de entender.
+              <h3 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">Estadísticas y progreso</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                Visualiza tu progreso con gráficos claros y métricas detalladas. Consulta tus porcentajes de cumplimiento, días totales completados y tendencias a lo largo del tiempo. Identifica patrones y ajusta tus objetivos según tus necesidades.
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="group p-5 rounded-xl bg-white/70 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all">
-              <div className="w-11 h-11 rounded-lg bg-gradient-to-r from-purple-400 to-pink-500 text-white flex items-center justify-center shadow-md">
-                <span className="material-icons">star</span>
+            <div className="group p-6 rounded-xl bg-white/70 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-purple-300 dark:hover:border-purple-600 transition-all">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-400 to-pink-500 text-white flex items-center justify-center shadow-md">
+                <span className="material-icons text-2xl">local_fire_department</span>
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Rachas y logros</h3>
-              <p className="mt-1.5 text-sm text-gray-600 dark:text-gray-300">
-                Mantén tu motivación con rachas, objetivos y pequeños logros diarios.
+              <h3 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">Rachas y motivación</h3>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+                Construye rachas consecutivas al completar tus hábitos día tras día. Cada racha te motiva a continuar y muestra tu compromiso. Mantén tu impulso vivo y celebra cada pequeño logro en tu camino hacia una vida más saludable.
               </p>
             </div>
           </div>
-        </section>
 
-        {/* Footer */}
-        <footer className="mt-12 md:mt-16 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">© 2024 Rutinia — Versión Beta</p>
-        </footer>
-      </main>
+          {/* Footer */}
+          <footer className="mt-12 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400">© 2024 Rutinia — Versión Beta</p>
+          </footer>
+        </div>
+      </section>
     </div>
   );
 }
