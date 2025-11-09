@@ -43,6 +43,11 @@ public class CategoriaService implements ICategoriaService {
 		return categoriaRepositorio.save(categoria);
 	}
 
+	@Override
+	public void borrarCategoria(int id) {
+		//borrar categoria
+		categoriaRepositorio.deleteById(id);
+	}
 
 	
 }

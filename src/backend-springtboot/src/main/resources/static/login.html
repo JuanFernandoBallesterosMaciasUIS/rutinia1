@@ -32,12 +32,39 @@
         .logo {
             text-align: center;
             margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .logo h1 {
-            color: #667eea;
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .logo-text {
             font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .logo p {
@@ -157,7 +184,10 @@
 <body>
     <div class="container">
         <div class="logo">
-            <h1>🏃‍♂️ Rutinia</h1>
+            <div class="logo-container">
+                <div class="logo-icon">R</div>
+                <span class="logo-text">utinia</span>
+            </div>
             <p>Tu compañero de hábitos diarios</p>
         </div>
 
@@ -201,7 +231,7 @@
             alertDiv.style.display = 'none';
             
             try {
-                const response = await fetch('/login', {
+                const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -215,23 +245,30 @@
                 const data = await response.json();
                 loadingDiv.style.display = 'none';
                 
-                if (response.ok && data.statusCode === 200) {
-                    // Login exitoso
+                if (response.ok) {
+                    // Login exitoso - con JWT
                     alertDiv.className = 'alert alert-success';
                     alertDiv.textContent = 'Login exitoso! Redirigiendo...';
                     alertDiv.style.display = 'block';
                     
-                    // Guardar datos del usuario en localStorage
-                    localStorage.setItem('user', JSON.stringify(data.Usuario));
+                    // Guardar token JWT y datos del usuario en localStorage
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userId', data.idUsuario);
+                    // nombreUsuario viene del backend con el nombre completo
+                    localStorage.setItem('userName', data.nombreUsuario || data.correo);
+                    localStorage.setItem('userEmail', data.correo);
                     
-                    // Redirigir a Swagger UI después de 1 segundo
+                    // Obtener el rol del usuario para mostrar opciones de admin
+                    obtenerRolUsuario(data.idUsuario, data.token);
+                    
+                    // Redirigir a la página de hábitos después de 1 segundo
                     setTimeout(() => {
-                        window.location.href = '/swagger-ui/index.html';
+                        window.location.href = '/habitos.html';
                     }, 1000);
                 } else {
                     // Login fallido
                     alertDiv.className = 'alert alert-error';
-                    alertDiv.textContent = data.Mensaje || 'Error en el login';
+                    alertDiv.textContent = data.mensaje || 'Error en el login. Verifica tus credenciales.';
                     alertDiv.style.display = 'block';
                 }
             } catch (error) {
@@ -241,6 +278,31 @@
                 alertDiv.style.display = 'block';
             }
         });
+        
+        async function obtenerRolUsuario(userId, token) {
+            try {
+                const response = await fetch(`/api/usuarios/list/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const usuario = await response.json();
+                    if (usuario.rol) {
+                        localStorage.setItem('userRole', usuario.rol.nombre);
+                        localStorage.setItem('userRoleId', usuario.rol.idRol);
+                    }
+                }
+            } catch (error) {
+                console.error('Error al obtener rol del usuario:', error);
+            }
+            
+            // Redirigir a la página de hábitos después de obtener el rol
+            setTimeout(() => {
+                window.location.href = '/habitos.html';
+            }, 1000);
+        }
     </script>
 </body>
 </html>

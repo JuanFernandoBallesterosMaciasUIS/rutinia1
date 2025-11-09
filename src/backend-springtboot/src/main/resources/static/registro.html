@@ -33,12 +33,39 @@
         .logo {
             text-align: center;
             margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
         }
 
-        .logo h1 {
-            color: #667eea;
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .logo-text {
             font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .logo p {
@@ -177,7 +204,10 @@
 <body>
     <div class="container">
         <div class="logo">
-            <h1>🏃‍♂️ Rutinia</h1>
+            <div class="logo-container">
+                <div class="logo-icon">R</div>
+                <span class="logo-text">utinia</span>
+            </div>
             <p>Crea tu cuenta y comienza tu rutina</p>
         </div>
 
@@ -280,7 +310,7 @@
             };
             
             try {
-                const response = await fetch('/registro', {
+                const response = await fetch('/api/auth/registro', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -293,17 +323,32 @@
                 if (response.ok) {
                     const data = await response.json();
                     alertDiv.className = 'alert alert-success';
-                    alertDiv.textContent = 'Cuenta creada exitosamente! Redirigiendo al login...';
+                    alertDiv.textContent = 'Cuenta creada exitosamente! Iniciando sesión...';
                     alertDiv.style.display = 'block';
                     
-                    // Redirigir al login después de 2 segundos
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 2000);
+                    // El endpoint /api/auth/registro ya devuelve un token JWT automáticamente
+                    // Guardar token y datos del usuario
+                    if (data.token) {
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('userId', data.idUsuario);
+                        // nombreUsuario viene del backend con el nombre completo
+                        localStorage.setItem('userName', data.nombreUsuario || data.correo);
+                        localStorage.setItem('userEmail', data.correo);
+                        
+                        // Redirigir a la página de hábitos después de 2 segundos
+                        setTimeout(() => {
+                            window.location.href = '/habitos.html';
+                        }, 2000);
+                    } else {
+                        // Si por alguna razón no hay token, redirigir al login
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 2000);
+                    }
                 } else {
                     const errorData = await response.json();
                     alertDiv.className = 'alert alert-error';
-                    alertDiv.textContent = errorData.message || 'Error al crear la cuenta';
+                    alertDiv.textContent = errorData.mensaje || 'Error al crear la cuenta';
                     alertDiv.style.display = 'block';
                 }
             } catch (error) {

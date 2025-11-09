@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Autenticación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .info-box {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #2196F3;
+        }
+        .error-box {
+            background: #ffe7e7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #f44336;
+        }
+        .success-box {
+            background: #e7ffe7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test de Autenticación - Rutinia</h1>
+        
+        <h2>1. Datos en LocalStorage</h2>
+        <div id="localStorageInfo"></div>
+        
+        <h2>2. Acciones</h2>
+        <button onclick="testLogin()">Test Login</button>
+        <button onclick="testCategorias()">Test Categorías</button>
+        <button onclick="testFrecuencias()">Test Frecuencias</button>
+        <button onclick="testHabitos()">Test Hábitos</button>
+        <button onclick="clearStorage()">Limpiar Storage</button>
+        
+        <h2>3. Resultados</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function mostrarLocalStorage() {
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('userId');
+            const userName = localStorage.getItem('userName');
+            const userEmail = localStorage.getItem('userEmail');
+
+            let html = '<div class="info-box">';
+            html += '<strong>Token:</strong> ' + (token ? 'Sí existe (' + token.substring(0, 20) + '...)' : 'No existe') + '<br>';
+            html += '<strong>User ID:</strong> ' + (userId || 'No existe') + '<br>';
+            html += '<strong>User Name:</strong> ' + (userName || 'No existe') + '<br>';
+            html += '<strong>User Email:</strong> ' + (userEmail || 'No existe');
+            html += '</div>';
+
+            document.getElementById('localStorageInfo').innerHTML = html;
+        }
+
+        async function testLogin() {
+            const email = prompt('Ingresa tu email:', 'test@test.com');
+            const password = prompt('Ingresa tu password:', 'test123');
+
+            if (!email || !password) return;
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        nombreUsuario: email,
+                        password: password
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userId', data.idUsuario);
+                    localStorage.setItem('userName', data.nombreUsuario);
+                    localStorage.setItem('userEmail', data.correo);
+
+                    mostrarResultado('Login exitoso!', 'success', data);
+                    mostrarLocalStorage();
+                } else {
+                    mostrarResultado('Error en login', 'error', data);
+                }
+            } catch (error) {
+                mostrarResultado('Error de conexión', 'error', error.message);
+            }
+        }
+
+        async function testCategorias() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Primero debes hacer login');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/categorias/list', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    mostrarResultado('Categorías cargadas: ' + data.length, 'success', data);
+                } else {
+                    mostrarResultado('Error al cargar categorías', 'error', data);
+                }
+            } catch (error) {
+                mostrarResultado('Error de conexión', 'error', error.message);
+            }
+        }
+
+        async function testFrecuencias() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Primero debes hacer login');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/frecuencias/list', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    mostrarResultado('Frecuencias cargadas: ' + data.length, 'success', data);
+                } else {
+                    mostrarResultado('Error al cargar frecuencias', 'error', data);
+                }
+            } catch (error) {
+                mostrarResultado('Error de conexión', 'error', error.message);
+            }
+        }
+
+        async function testHabitos() {
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('userId');
+            
+            if (!token || !userId) {
+                alert('Primero debes hacer login');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/habitos/usuarios/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    mostrarResultado('Hábitos cargados: ' + data.length, 'success', data);
+                } else {
+                    mostrarResultado('Error al cargar hábitos', 'error', data);
+                }
+            } catch (error) {
+                mostrarResultado('Error de conexión', 'error', error.message);
+            }
+        }
+
+        function mostrarResultado(titulo, tipo, data) {
+            const boxClass = tipo === 'success' ? 'success-box' : 'error-box';
+            let html = `<div class="${boxClass}">`;
+            html += `<strong>${titulo}</strong><br>`;
+            html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            html += `</div>`;
+
+            document.getElementById('results').innerHTML = html + document.getElementById('results').innerHTML;
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            mostrarLocalStorage();
+            alert('LocalStorage limpiado');
+        }
+
+        // Mostrar info al cargar
+        mostrarLocalStorage();
+    </script>
+</body>
+</html>

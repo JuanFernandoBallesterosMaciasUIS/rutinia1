@@ -4,6 +4,9 @@ from django.shortcuts import render
 from datetime import datetime, timedelta, date
 import calendar
 
+# MongoDB ObjectId
+from bson import ObjectId
+
 # Create your views here.
 #from rest_framework import viewsets, status
 from rest_framework_mongoengine import viewsets
@@ -12,6 +15,7 @@ from rest_framework import status
 #Librerias rest
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from .models import Usuario, Habito, RegistroHabito, Rol, Categoria, Notificacion, Tool
 from .serializers import UsuarioSerializer, RolSerializer, HabitoSerializer, CategoriaSerializer, RegistroHabitoSerializer, ToolSerializer, NotificacionSerializer
 
@@ -21,10 +25,12 @@ from .pagination import HabitoPagination
 class RolViewSet(viewsets.ModelViewSet):
     queryset = Rol.objects.all()
     serializer_class = RolSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     serializer_class = UsuarioSerializer
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         queryset = Usuario.objects.all()
@@ -66,19 +72,25 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
+    permission_classes = [IsAuthenticated]
 
 class RegistroHabitoViewSet(viewsets.ModelViewSet):
     #queryset = RegistroHabito.objects.all()
     serializer_class = RegistroHabitoSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = RegistroHabito.objects.all()
-
         id_habito = self.request.query_params.get('habito')
 
         if id_habito:
-            queryset = queryset.filter(habito=id_habito)
-
+            try:
+                # Convertir string a ObjectId para MongoEngine
+                habito_obj = Habito.objects.get(id=ObjectId(id_habito))
+                queryset = queryset.filter(habito=habito_obj)
+            except (Habito.DoesNotExist, Exception):
+                # Si el hábito no existe o el ID es inválido, devolver queryset vacío
+                return RegistroHabito.objects.none()
         
         return queryset
     
@@ -94,8 +106,6 @@ class RegistroHabitoViewSet(viewsets.ModelViewSet):
             "completado": true/false
         }
         """
-        from bson import ObjectId
-        
         habito_id = request.data.get('habito_id')
         fecha_str = request.data.get('fecha')
         completado = request.data.get('completado', True)
@@ -166,6 +176,7 @@ class RegistroHabitoViewSet(viewsets.ModelViewSet):
 
 class HabitoViewSet(viewsets.ModelViewSet):
     serializer_class = HabitoSerializer
+    permission_classes = [IsAuthenticated]
     #pagination_class = HabitoPagination
 
     def get_queryset(self):
@@ -183,9 +194,21 @@ class HabitoViewSet(viewsets.ModelViewSet):
         #noticaciones = self.request.query_params.get('notificaciones')
         
         if usuario:
-            queryset = queryset.filter(usuario=usuario)
+            try:
+                # Convertir string a ObjectId para MongoEngine
+                usuario_obj = Usuario.objects.get(id=ObjectId(usuario))
+                queryset = queryset.filter(usuario=usuario_obj)
+            except (Usuario.DoesNotExist, Exception):
+                # Si el usuario no existe o el ID es inválido, devolver queryset vacío
+                return Habito.objects.none()
+        
         if categoria:
-            queryset = queryset.filter(categoria=categoria)
+            try:
+                # Convertir string a ObjectId para MongoEngine
+                categoria_obj = Categoria.objects.get(id=ObjectId(categoria))
+                queryset = queryset.filter(categoria=categoria_obj)
+            except (Categoria.DoesNotExist, Exception):
+                pass
         if dificultad:
             queryset = queryset.filter(dificultad__icontains=dificultad)
         if publico is not None:
@@ -326,6 +349,7 @@ class ToolViewSet(viewsets.ModelViewSet):
     '''
     lookup_field = 'id'
     serializer_class = ToolSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Tool.objects.all()

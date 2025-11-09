@@ -6,6 +6,7 @@ const monthNames = [
 ];
 
 const dayNamesShort = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'];
+const dayNamesDisplay = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 function Calendar({ habitsData, completedHabits }) {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -66,7 +67,11 @@ function Calendar({ habitsData, completedHabits }) {
     
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    const firstDayOfWeek = firstDay.getDay();
+    
+    // Ajustar para que la semana empiece en lunes (1 = Lunes en lugar de Domingo = 0)
+    let firstDayOfWeek = firstDay.getDay();
+    firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Convertir domingo (0) a 6, resto restar 1
+    
     const daysInMonth = lastDay.getDate();
     
     const days = [];
@@ -133,9 +138,13 @@ function Calendar({ habitsData, completedHabits }) {
     const day = currentDate.getDate();
     
     const currentDay = new Date(year, month, day);
-    const dayOfWeek = currentDay.getDay();
+    
+    // Ajustar para que la semana empiece en lunes
+    let dayOfWeek = currentDay.getDay();
+    dayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convertir domingo a 6, resto restar 1
+    
     const weekStart = new Date(currentDay);
-    weekStart.setDate(currentDay.getDate() - dayOfWeek);
+    weekStart.setDate(currentDay.getDate() - dayOfWeek); // Restar para llegar al lunes
     
     const days = [];
     const today = new Date();
@@ -199,7 +208,11 @@ function Calendar({ habitsData, completedHabits }) {
       const day = currentDate.getDate();
       
       const currentDay = new Date(year, month, day);
-      const dayOfWeek = currentDay.getDay();
+      
+      // Ajustar para que la semana empiece en lunes
+      let dayOfWeek = currentDay.getDay();
+      dayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      
       const weekStart = new Date(currentDay);
       weekStart.setDate(currentDay.getDate() - dayOfWeek);
       
@@ -358,13 +371,11 @@ function Calendar({ habitsData, completedHabits }) {
       <div className="bg-card-light dark:bg-card-dark rounded-large p-4 sm:p-6 shadow-sm mb-6">
         {/* Días de la semana */}
         <div className="grid grid-cols-7 gap-2 mb-4">
-          <div className="text-center font-semibold text-sm text-subtext-light dark:text-subtext-dark">Dom</div>
-          <div className="text-center font-semibold text-sm text-subtext-light dark:text-subtext-dark">Lun</div>
-          <div className="text-center font-semibold text-sm text-subtext-light dark:text-subtext-dark">Mar</div>
-          <div className="text-center font-semibold text-sm text-subtext-light dark:text-subtext-dark">Mié</div>
-          <div className="text-center font-semibold text-sm text-subtext-light dark:text-subtext-dark">Jue</div>
-          <div className="text-center font-semibold text-sm text-subtext-light dark:text-subtext-dark">Vie</div>
-          <div className="text-center font-semibold text-sm text-subtext-light dark:text-subtext-dark">Sáb</div>
+          {dayNamesDisplay.map((day, index) => (
+            <div key={index} className="text-center font-semibold text-sm text-subtext-light dark:text-subtext-dark">
+              {day}
+            </div>
+          ))}
         </div>
 
         {/* Días del mes o semana */}

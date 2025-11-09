@@ -17,6 +17,9 @@ public interface ICategoriaService {
 	
 	Categoria buscarCategoria (int id);
 	
+	//Borrar categoria
+	
+	void borrarCategoria(int id);
 
 	
 }
