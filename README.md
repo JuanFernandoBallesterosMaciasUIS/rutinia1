@@ -29,6 +29,8 @@ La documentación completa del proyecto está disponible en la [Wiki](https://gi
 - [Instalación y Configuración](#instalación-y-configuración)
   - [Requisitos Previos](#requisitos-previos)
   - [Instalación Paso a Paso](#instalación-paso-a-paso)
+    - [Version Django + React](#version-Django-+-react)  
+    - [Version Springboot](#version-Springboot) 
   - [Ejecución del Proyecto](#ejecución-del-proyecto)
   - [Solución de Problemas](#solución-de-problemas)
 - [Tecnologías Utilizadas](#tecnologías-utilizadas-versión-actual)
@@ -43,7 +45,9 @@ La documentación completa del proyecto está disponible en la [Wiki](https://gi
 
 ## Instalación y configuración
 
-### Requisitos Previos
+### version Django + react
+
+#### Requisitos Previos
 
 Antes de comenzar, asegúrate de tener instalado:
 
@@ -52,16 +56,16 @@ Antes de comenzar, asegúrate de tener instalado:
 - **Git** - [Descargar](https://git-scm.com/downloads)
 - Conexión a Internet (para MongoDB Atlas)
 
-### Instalación Paso a Paso
+#### Instalación Paso a Paso
 
-#### 1. Clonar el repositorio
+##### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/JuanFernandoBallesterosMaciasUIS/Rutinia-1.0.git
 cd Rutinia-1.0
 ```
 
-#### 2. Configurar Backend (Django + MongoDB)
+##### 2. Configurar Backend (Django + MongoDB)
 
 ```bash
 # Navegar a la carpeta del backend
@@ -82,7 +86,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#### 3. Crear Datos de Prueba (Opcional)
+##### 3. Crear Datos de Prueba (Opcional)
 
 ```bash
 cd rutinia
@@ -94,7 +98,7 @@ Esto creará:
 - 1 categoría (Salud)
 - 3 hábitos de ejemplo
 
-#### 4. Configurar Frontend (React + Vite)
+##### 4. Configurar Frontend (React + Vite)
 
 ```bash
 # Desde la raíz del proyecto
@@ -104,9 +108,9 @@ cd src/frontend-react
 npm install
 ```
 
-### Ejecución del Proyecto
+#### Ejecución del Proyecto
 
-#### Opción 1: Script Automático (Windows - Recomendado)
+##### Opción 1: Script Automático (Windows - Recomendado)
 
 ```bash
 cd src
@@ -117,7 +121,7 @@ Este script abre automáticamente:
 - Django en `http://localhost:8000`
 - React en `http://localhost:5173`
 
-#### Opción 2: Manual (Dos Terminales)
+##### Opción 2: Manual (Dos Terminales)
 
 **Terminal 1 - Backend:**
 ```bash
@@ -134,13 +138,13 @@ cd src/frontend-react
 npm run dev
 ```
 
-###  Acceder a la Aplicación
+####  Acceder a la Aplicación
 
 - **Aplicación Web:** `http://localhost:5173`
 - **API REST:** `http://localhost:8000/api/`
 - **Desde celular (misma WiFi):** Buscar URL "Network" en la terminal de React
 
-### API Endpoints Principales
+#### API Endpoints Principales
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
@@ -150,7 +154,7 @@ npm run dev
 | `GET/POST` | `/api/categorias/` | Gestionar categorías |
 | `GET/POST` | `/api/registros/` | Registros de hábitos completados |
 
-### Solución de Problemas
+#### Solución de Problemas
 
 **Error: "ModuleNotFoundError: No module named 'django'"**
 ```bash
@@ -170,9 +174,51 @@ pip install -r requeriments.txt
 
 **Documentación Completa:** Ver [`src/COMO_CORRER_PROYECTO.md`](src/COMO_CORRER_PROYECTO.md)
 
+### version Springboot
+##### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/JuanFernandoBallesterosMaciasUIS/Rutinia-1.0.git
+cd Rutinia-1.0
+```
+##### 2. Crear base de datos local
+
+para crear la base de datos se debe usar el script .sql que podra encontrar en
+
+```bash
+src/backend-springtboot/rutinia.sql
+```
+##### 3. Editar application.properties
+Debe editar el archivo que se encuentra en `src\backend-springtboot\src\main\resources\application.properties`, cambiando los siguientes parametros con las credenciales de su sesion mySQL
+
+```java
+.
+.
+.
+spring.datasource.username=<usuario>
+spring.datasource.password=<contraseña>
+.
+.
+.
+```
+
 ---
 
-## Tecnologías utilizadas (Versión Actual)
+## Tecnologías utilizadas (Versión springboot)
+
+### Backend
+- Spring Boot 3.5.5 
+- Java 17
+- JWT
+- Spring Security
+- Maven
+- OpenAPI/Swagger
+### Frontend
+- HTML5
+- CSS3
+- JavaScript Vanilla
+
+## Tecnologías utilizadas (Versión Django + react)
 
 ### Backend
 - **Django** 5.2.7
@@ -185,11 +231,7 @@ pip install -r requeriments.txt
 - **Vite** 5.4.11
 - **Tailwind CSS** 3.4.18
 - **Material Icons**
-
-### Legacy (Spring Boot)
-- **Spring Boot** (Java) - Implementación anterior
-- **MySQL** - Base de datos relacional anterior
-
+- 
 ---
 
 ## Estructura del proyecto (Versión Actual)
@@ -217,6 +259,10 @@ Rutinia-1.0/
 │   │   └── vite.config.js
 │   │
 │   ├── backend-springboot/      # Backend Spring Boot (Legacy)
+│   │   ├── src/
+│   │   │   ├── main/      # Componentes React
+│   │   │   |    ├── java/uis/edu/entorno/backend # Area principal (modelos, servicios, repositorios, controladores)
+│   │   │   |    ├── java/uis/edu/entorno/resources # (archivos html, css y javascript)
 │   ├── start-all.bat            # Script de inicio (Windows)
 │   └── COMO_CORRER_PROYECTO.md
 │
@@ -227,7 +273,7 @@ Rutinia-1.0/
 
 ---
 
-## Arquitectura de Datos
+## Arquitectura de Datos Django + React
 
 ### Modelos Principales (MongoDB)
 
@@ -255,8 +301,8 @@ Rutinia-1.0/
 
 ##  Características (Versión Actual)
 
--  Crear y gestionar hábitos personalizados
--  Frecuencia: diaria, semanal, mensual
+- Crear y gestionar hábitos personalizados
+- Frecuencia: diaria, semanal, mensual
 - Marcar hábitos como completados
 - Vista de calendario interactivo
 - Vista de "Mis Hábitos" con filtros
@@ -270,11 +316,13 @@ Rutinia-1.0/
 
 ## Demo y Capturas
 
-> Agrega capturas de pantalla de la aplicación en `docs/screenshots/` para mostrar:
-> - Vista principal con calendario
-> - Sección "Mis Hábitos"
-> - Modal de creación de hábito
-> - Modo oscuro/claro
+### version Springboot
+![pagina_bienvenida](docs/screenshots/Springboot/Bienvenida.png)
+![pagina_Login](docs/screenshots/Springboot/Login.png)
+![pagina_Categorias](docs/screenshots/Springboot/Categorias.png)
+![pagina_Habitos](docs/screenshots/Springboot/Habitos.png)
+![pagina_Usuarios](docs/screenshots/Springboot/Usuarios.png)
+![Modelo entidad relación](docs/arquitectura/Modelo-Entidad-Relacion/MER_Extendido.jpg)
 
 ---
 
@@ -349,11 +397,8 @@ Rutinia-1.0/
 ## Estado del Proyecto
 
 **Versión:** 1.0 (Django + React + MongoDB)  
-**Última Actualización:** Enero 2025  
+**Última Actualización:** Octubre 2025  
 **Estado:** En Desarrollo Activo  
 **Contexto:** Proyecto académico - UIS (Universidad Industrial de Santander)
 
 ---
-
-## Diseño de base de datos relacional (Legacy)
-![Modelo entidad relación](docs/arquitectura/Modelo-Entidad-Relacion/MER_Extendido.jpg)
