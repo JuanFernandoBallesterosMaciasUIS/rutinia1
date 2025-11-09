@@ -4,6 +4,9 @@ from django.shortcuts import render
 from datetime import datetime, timedelta, date
 import calendar
 
+# MongoDB ObjectId
+from bson import ObjectId
+
 # Create your views here.
 #from rest_framework import viewsets, status
 from rest_framework_mongoengine import viewsets
@@ -78,12 +81,16 @@ class RegistroHabitoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = RegistroHabito.objects.all()
-
         id_habito = self.request.query_params.get('habito')
 
         if id_habito:
-            queryset = queryset.filter(habito=id_habito)
-
+            try:
+                # Convertir string a ObjectId para MongoEngine
+                habito_obj = Habito.objects.get(id=ObjectId(id_habito))
+                queryset = queryset.filter(habito=habito_obj)
+            except (Habito.DoesNotExist, Exception):
+                # Si el hábito no existe o el ID es inválido, devolver queryset vacío
+                return RegistroHabito.objects.none()
         
         return queryset
     
@@ -99,8 +106,6 @@ class RegistroHabitoViewSet(viewsets.ModelViewSet):
             "completado": true/false
         }
         """
-        from bson import ObjectId
-        
         habito_id = request.data.get('habito_id')
         fecha_str = request.data.get('fecha')
         completado = request.data.get('completado', True)
@@ -189,9 +194,21 @@ class HabitoViewSet(viewsets.ModelViewSet):
         #noticaciones = self.request.query_params.get('notificaciones')
         
         if usuario:
-            queryset = queryset.filter(usuario=usuario)
+            try:
+                # Convertir string a ObjectId para MongoEngine
+                usuario_obj = Usuario.objects.get(id=ObjectId(usuario))
+                queryset = queryset.filter(usuario=usuario_obj)
+            except (Usuario.DoesNotExist, Exception):
+                # Si el usuario no existe o el ID es inválido, devolver queryset vacío
+                return Habito.objects.none()
+        
         if categoria:
-            queryset = queryset.filter(categoria=categoria)
+            try:
+                # Convertir string a ObjectId para MongoEngine
+                categoria_obj = Categoria.objects.get(id=ObjectId(categoria))
+                queryset = queryset.filter(categoria=categoria_obj)
+            except (Categoria.DoesNotExist, Exception):
+                pass
         if dificultad:
             queryset = queryset.filter(dificultad__icontains=dificultad)
         if publico is not None:

@@ -94,12 +94,20 @@ class HabitoSerializer(mon.DocumentSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        """Muestra usuario y categoría completos al listar"""
+        """
+        Muestra información básica de usuario y categoría.
+        Evita serialización circular que causa error 500.
+        """
         data = super().to_representation(instance)
+        
+        # Solo incluir ID del usuario (no el objeto completo)
         if instance.usuario:
-            data['usuario'] = UsuarioSerializer(instance.usuario).data
+            data['usuario'] = str(instance.usuario.id)
+        
+        # Categoría puede ir completa (no tiene referencias circulares)
         if instance.categoria:
             data['categoria'] = CategoriaSerializer(instance.categoria).data
+        
         return data
 
 class RegistroHabitoSerializer(mon.DocumentSerializer):
@@ -108,7 +116,17 @@ class RegistroHabitoSerializer(mon.DocumentSerializer):
         fields = '__all__'
     
     def to_representation(self, instance):
+        """
+        Solo incluye información básica del hábito.
+        Evita incluir el hábito completo con usuario, etc.
+        """
         data = super().to_representation(instance)
         if instance.habito:
-            data['habito'] = HabitoSerializer(instance.habito).data
+            # Solo incluir datos básicos del hábito
+            data['habito'] = {
+                'id': str(instance.habito.id),
+                'nombre': instance.habito.nombre,
+                'icono': instance.habito.icono if hasattr(instance.habito, 'icono') else 'fitness_center',
+                'color': instance.habito.color if hasattr(instance.habito, 'color') else 'blue'
+            }
         return data

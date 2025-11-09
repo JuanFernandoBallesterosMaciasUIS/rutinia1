@@ -156,7 +156,7 @@ CORS_ALLOW_CREDENTIALS = True
 # REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'core.jwt_auth.MongoJWTAuthentication',  # Autenticador personalizado para MongoDB
     ),
     # Permitir acceso sin autenticación por defecto (cada view puede requerir auth específicamente)
     'DEFAULT_PERMISSION_CLASSES': (
