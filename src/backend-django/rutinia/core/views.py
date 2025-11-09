@@ -12,6 +12,7 @@ from rest_framework import status
 #Librerias rest
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from .models import Usuario, Habito, RegistroHabito, Rol, Categoria, Notificacion, Tool
 from .serializers import UsuarioSerializer, RolSerializer, HabitoSerializer, CategoriaSerializer, RegistroHabitoSerializer, ToolSerializer, NotificacionSerializer
 
@@ -21,10 +22,12 @@ from .pagination import HabitoPagination
 class RolViewSet(viewsets.ModelViewSet):
     queryset = Rol.objects.all()
     serializer_class = RolSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     serializer_class = UsuarioSerializer
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         queryset = Usuario.objects.all()
@@ -66,10 +69,12 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
+    permission_classes = [IsAuthenticated]
 
 class RegistroHabitoViewSet(viewsets.ModelViewSet):
     #queryset = RegistroHabito.objects.all()
     serializer_class = RegistroHabitoSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = RegistroHabito.objects.all()
@@ -166,6 +171,7 @@ class RegistroHabitoViewSet(viewsets.ModelViewSet):
 
 class HabitoViewSet(viewsets.ModelViewSet):
     serializer_class = HabitoSerializer
+    permission_classes = [IsAuthenticated]
     #pagination_class = HabitoPagination
 
     def get_queryset(self):
@@ -326,6 +332,7 @@ class ToolViewSet(viewsets.ModelViewSet):
     '''
     lookup_field = 'id'
     serializer_class = ToolSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Tool.objects.all()
