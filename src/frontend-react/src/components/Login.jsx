@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUsuario, registrarUsuario } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const Login = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
+  const { login, register } = useAuth();
   const [isLogin, setIsLogin] = useState(true); // true = login, false = registro
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [formData, setFormData] = useState({
     correo: '',
-    clave: '',
+    contrasena: '',
     nombre: '',
     apellido: '',
-    confirmarClave: ''
+    confirmarContrasena: ''
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -48,10 +49,10 @@ const Login = ({ onLoginSuccess }) => {
     }
 
     // Validar contraseña
-    if (!formData.clave) {
-      newErrors.clave = 'La contraseña es requerida';
-    } else if (formData.clave.length < 6) {
-      newErrors.clave = 'La contraseña debe tener al menos 6 caracteres';
+    if (!formData.contrasena) {
+      newErrors.contrasena = 'La contraseña es requerida';
+    } else if (formData.contrasena.length < 6) {
+      newErrors.contrasena = 'La contraseña debe tener al menos 6 caracteres';
     }
 
     // Validaciones adicionales para registro
@@ -62,10 +63,10 @@ const Login = ({ onLoginSuccess }) => {
       if (!formData.apellido) {
         newErrors.apellido = 'El apellido es requerido';
       }
-      if (!formData.confirmarClave) {
-        newErrors.confirmarClave = 'Confirma tu contraseña';
-      } else if (formData.clave !== formData.confirmarClave) {
-        newErrors.confirmarClave = 'Las contraseñas no coinciden';
+      if (!formData.confirmarContrasena) {
+        newErrors.confirmarContrasena = 'Confirma tu contraseña';
+      } else if (formData.contrasena !== formData.confirmarContrasena) {
+        newErrors.confirmarContrasena = 'Las contraseñas no coinciden';
       }
     }
 
@@ -81,28 +82,22 @@ const Login = ({ onLoginSuccess }) => {
 
     setLoading(true);
     try {
-      // Llamada a la API
-      const usuario = await loginUsuario({
-        correo: formData.correo,
-        clave: formData.clave
-      });
+      // Llamada con JWT
+      const response = await login(formData.correo, formData.contrasena);
 
-      // Guardar en localStorage
-      localStorage.setItem('usuario', JSON.stringify(usuario));
-      
       // Mostrar animación de éxito
       setLoginSuccess(true);
       
       // Esperar un momento antes de notificar al padre
       setTimeout(() => {
         if (onLoginSuccess) {
-          onLoginSuccess(usuario);
+          onLoginSuccess(response.user);
         }
       }, 800);
 
     } catch (error) {
       console.error('Error en login:', error);
-      setErrors({ general: error.message || 'Error al iniciar sesión. Verifica tus credenciales.' });
+      setErrors({ general: error.error || 'Error al iniciar sesión. Verifica tus credenciales.' });
     } finally {
       setLoading(false);
     }
@@ -116,30 +111,26 @@ const Login = ({ onLoginSuccess }) => {
 
     setLoading(true);
     try {
-      const usuario = await registrarUsuario({
+      const response = await register({
         nombre: formData.nombre,
-        apellido: formData.apellido,
         correo: formData.correo,
-        clave: formData.clave,
-        tema: 'light'
+        contrasena: formData.contrasena,
+        rol_id: 'user'
       });
 
-      // Guardar en localStorage
-      localStorage.setItem('usuario', JSON.stringify(usuario));
-      
       // Mostrar animación de éxito
       setLoginSuccess(true);
       
       // Esperar un momento antes de notificar al padre
       setTimeout(() => {
         if (onLoginSuccess) {
-          onLoginSuccess(usuario);
+          onLoginSuccess(response.user);
         }
       }, 800);
 
     } catch (error) {
       console.error('Error en registro:', error);
-      setErrors({ general: error.message || 'Error al crear la cuenta. El correo ya puede estar registrado.' });
+      setErrors({ general: error.error || 'Error al crear la cuenta. El correo ya puede estar registrado.' });
     } finally {
       setLoading(false);
     }
@@ -155,10 +146,10 @@ const Login = ({ onLoginSuccess }) => {
       setIsLogin(!isLogin);
       setFormData({
         correo: '',
-        clave: '',
+        contrasena: '',
         nombre: '',
         apellido: '',
-        confirmarClave: ''
+        confirmarContrasena: ''
       });
       setErrors({});
       setLoginSuccess(false);
@@ -334,12 +325,12 @@ const Login = ({ onLoginSuccess }) => {
                 </span>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  name="clave"
-                  value={formData.clave}
+                  name="contrasena"
+                  value={formData.contrasena}
                   onChange={handleChange}
                   placeholder="••••••••"
                   className={`w-full pl-10 pr-12 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 ${
-                    errors.clave ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    errors.contrasena ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
                 <button
@@ -352,8 +343,8 @@ const Login = ({ onLoginSuccess }) => {
                   </span>
                 </button>
               </div>
-              {errors.clave && (
-                <p className="text-red-500 text-xs mt-1">{errors.clave}</p>
+              {errors.contrasena && (
+                <p className="text-red-500 text-xs mt-1">{errors.contrasena}</p>
               )}
             </div>
 
@@ -369,12 +360,12 @@ const Login = ({ onLoginSuccess }) => {
                   </span>
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
-                    name="confirmarClave"
-                    value={formData.confirmarClave}
+                    name="confirmarContrasena"
+                    value={formData.confirmarContrasena}
                     onChange={handleChange}
                     placeholder="••••••••"
                     className={`w-full pl-10 pr-12 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 ${
-                      errors.confirmarClave ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      errors.confirmarContrasena ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                   />
                   <button
@@ -387,8 +378,8 @@ const Login = ({ onLoginSuccess }) => {
                     </span>
                   </button>
                 </div>
-                {errors.confirmarClave && (
-                  <p className="text-red-500 text-xs mt-1">{errors.confirmarClave}</p>
+                {errors.confirmarContrasena && (
+                  <p className="text-red-500 text-xs mt-1">{errors.confirmarContrasena}</p>
                 )}
               </div>
             )}

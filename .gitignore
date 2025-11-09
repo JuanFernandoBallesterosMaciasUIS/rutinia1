@@ -75,5 +75,28 @@ $RECYCLE.BIN/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-#Enviroment variables
+# Environment variables & sensitive data
 .env
+.env.local
+.env.*.local
+*.env
+**/.env
+**/rutinia/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+db.sqlite3
+*.db
+*.sqlite
+
+# Scripts with sensitive data
+hash_existing_passwords.py
+create_sample_habits.py
+seed_data.py

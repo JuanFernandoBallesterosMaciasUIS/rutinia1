@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
 import HabitCard from './components/HabitCard';
