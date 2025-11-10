@@ -62,6 +62,17 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
     setFormData({ ...formData, days: newDays });
   };
 
+  // Manejar cambio de frecuencia (limpiar días cuando cambia)
+  const handleFrequencyChange = (newFrequency) => {
+    // Si la frecuencia cambia, limpiar los días seleccionados
+    setSelectedDays([]);
+    setFormData({ 
+      ...formData, 
+      frequency: newFrequency,
+      days: [] // Limpiar días al cambiar frecuencia
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -240,7 +251,7 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
               <select 
                 required
                 value={formData.frequency}
-                onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                onChange={(e) => handleFrequencyChange(e.target.value)}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               >
                 <option value="">Selecciona la frecuencia</option>
