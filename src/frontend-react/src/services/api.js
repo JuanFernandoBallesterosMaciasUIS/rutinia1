@@ -1,4 +1,5 @@
 import { apiClient } from './authService';
+import { getLocalDateString } from './dateHelpers';
 
 // Configuración de la API
 const API_BASE_URL = 'http://localhost:8000/api';
@@ -290,7 +291,7 @@ export const mapHabitoToBackend = (frontendHabito, usuarioId = '507f1f77bcf86cd7
     usuario: usuarioId,
     nombre: frontendHabito.name,
     dificultad: 'media',
-    fecha_inicio: new Date().toISOString().split('T')[0],
+    fecha_inicio: getLocalDateString(), // Usar fecha local
     tipo_frecuencia: tipo_frecuencia,
     dias: frecuencia === 'semanal' ? (frontendHabito.days || []) : [],
     publico: false,
