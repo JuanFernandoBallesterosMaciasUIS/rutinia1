@@ -83,6 +83,11 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
       return;
     }
     
+    if (formData.frequency === 'mensual' && selectedDays.length === 0) {
+      alert('Por favor selecciona al menos un día del mes');
+      return;
+    }
+    
     onSubmit(formData);
   };
 
@@ -278,6 +283,30 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
                     }`}
                   >
                     <span className="text-[10px] sm:text-xs font-semibold">{day.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {formData.frequency === 'mensual' && (
+            <div>
+              <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
+                Días del mes * <span className="text-xs font-normal text-subtext-light dark:text-subtext-dark">(Selecciona los días en que quieres realizar este hábito)</span>
+              </label>
+              <div className="grid grid-cols-7 gap-1.5">
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                  <button 
+                    key={day}
+                    type="button"
+                    onClick={() => handleDayToggle(day)}
+                    className={`px-1 py-2 rounded-lg border-2 hover:border-primary transition-all text-center ${
+                      selectedDays.includes(day)
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  >
+                    <span className="text-[10px] sm:text-xs font-semibold">{day}</span>
                   </button>
                 ))}
               </div>

@@ -33,7 +33,11 @@ const HabitCard = ({
         : '';
       return days || 'Semanal';
     } else if (habit.frequency === 'mensual' || habit.frequency === 'Mensual') {
-      return 'Mensual';
+      // Mostrar los días del mes si están configurados
+      const days = habit.days && habit.days.length > 0
+        ? habit.days.sort((a, b) => a - b).join(', ')
+        : '';
+      return days ? `Días: ${days}` : 'Mensual';
     }
     return habit.frequency;
   };

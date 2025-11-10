@@ -98,17 +98,29 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
   // Función auxiliar para contar hábitos que aplican en un día específico
   const getHabitsForDay = (date) => {
     const dayName = getDayName(date);
+    const dayOfMonth = date.getDate(); // Día del mes (1-31)
     
     return habitos.filter(habit => {
-      // Si el hábito es diario o no tiene días definidos, aplica todos los días
-      if (habit.frequency === 'diario' || !habit.days || habit.days.length === 0) {
+      // Si el hábito es diario, aplica todos los días
+      if (habit.frequency === 'diario') {
         return true;
       }
       
-      // Si es semanal, verificar si aplica en este día
-      if (habit.frequency === 'semanal' && habit.days && habit.days.length > 0) {
+      // Si es semanal, verificar si aplica en este día de la semana
+      if (habit.frequency === 'semanal') {
+        if (!habit.days || habit.days.length === 0) {
+          return false;
+        }
         const normalizedHabitDays = habit.days.map(day => normalizeDayName(day));
         return normalizedHabitDays.includes(dayName);
+      }
+      
+      // Si es mensual, verificar si aplica en este día del mes
+      if (habit.frequency === 'mensual') {
+        if (!habit.days || habit.days.length === 0) {
+          return false;
+        }
+        return habit.days.includes(dayOfMonth);
       }
       
       return false;

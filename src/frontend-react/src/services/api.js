@@ -293,7 +293,8 @@ export const mapHabitoToBackend = (frontendHabito, usuarioId = '507f1f77bcf86cd7
     dificultad: 'media',
     fecha_inicio: getLocalDateString(), // Usar fecha local
     tipo_frecuencia: tipo_frecuencia,
-    dias: frecuencia === 'semanal' ? (frontendHabito.days || []) : [],
+    // ✨ DÍAS: incluir para frecuencia semanal (strings) y mensual (números)
+    dias: (frecuencia === 'semanal' || frecuencia === 'mensual') ? (frontendHabito.days || []) : [],
     publico: false,
     activo: true,
     notificaciones: [],

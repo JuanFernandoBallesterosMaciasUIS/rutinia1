@@ -60,7 +60,10 @@ const calculateStreak = (habit, completedHabits) => {
       return normalizedHabitDays.includes(dayName);
     }
     
-    if (frequency === 'mensual') return true;
+    if (frequency === 'mensual' && habit.days && habit.days.length > 0) {
+      const dayOfMonth = date.getDate(); // Día del mes (1-31)
+      return habit.days.includes(dayOfMonth);
+    }
     
     return false;
   };
@@ -335,9 +338,13 @@ function App() {
           const normalizedHabitDays = habit.days.map(day => normalizeDayName(day));
           return normalizedHabitDays.includes(currentDay);
         } else if (frequency === 'mensual') {
-          // Los hábitos mensuales se muestran todos los días del mes
-          // La lógica de "ya completado" se maneja después al consultar el backend
-          return true;
+          // Los hábitos mensuales aplican solo en los días del mes configurados
+          if (!habit.days || habit.days.length === 0) {
+            return false;
+          }
+          const today = new Date();
+          const dayOfMonth = today.getDate(); // Día del mes (1-31)
+          return habit.days.includes(dayOfMonth);
         }
         return false;
       });
@@ -483,45 +490,24 @@ function App() {
       
       return applies;
     } else if (frequency === 'mensual') {
-      // 🔧 HÁBITOS MENSUALES: Se muestran todos los días del mes hasta que se completen
-      // Una vez completado en CUALQUIER día del mes, no se vuelven a mostrar en ese mes
-      
-      const today = new Date();
-      const currentMonth = today.getMonth();
-      const currentYear = today.getFullYear();
-      
-      // Verificar si ya se completó en algún día de este mes
-      let completadoEsteMes = false;
-      
-      for (const dateStr in completedHabits) {
-        if (completedHabits[dateStr]?.includes(habit.id)) {
-          // Parsear la fecha del registro completado
-          const [year, month, day] = dateStr.split('-').map(Number);
-          const completedDate = new Date(year, month - 1, day);
-          
-          // Verificar si es del mismo mes y año
-          if (completedDate.getMonth() === currentMonth && 
-              completedDate.getFullYear() === currentYear) {
-            // Verificar si fue completado en un día ANTERIOR a hoy
-            const todayDateOnly = new Date(currentYear, currentMonth, today.getDate());
-            const completedDateOnly = new Date(year, month - 1, day);
-            
-            if (completedDateOnly < todayDateOnly) {
-              // Fue completado en un día anterior de este mes
-              completadoEsteMes = true;
-              break;
-            }
-          }
-        }
-      }
-      
-      // Si ya se completó en un día anterior de este mes, no mostrarlo
-      if (completadoEsteMes) {
+      // 🔧 HÁBITOS MENSUALES: Verificar si hoy está en los días seleccionados
+      if (!habit.days || habit.days.length === 0) {
+        console.warn(`⚠️ Hábito mensual "${habit.name}" no tiene días configurados`);
         return false;
       }
       
-      // Si no se ha completado o se completó hoy, mostrarlo
-      return true;
+      const today = new Date();
+      const dayOfMonth = today.getDate(); // Día del mes (1-31)
+      
+      // Verificar si el día de hoy está en los días seleccionados
+      const applies = habit.days.includes(dayOfMonth);
+      
+      console.log(`📅 Hábito mensual "${habit.name}"`);
+      console.log(`   Días configurados: [${habit.days.join(', ')}]`);
+      console.log(`   Hoy es día: ${dayOfMonth}`);
+      console.log(`   Aplica: ${applies}`);
+      
+      return applies;
     }
     return false;
   };
