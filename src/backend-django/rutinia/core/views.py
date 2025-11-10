@@ -250,13 +250,27 @@ class HabitoViewSet(viewsets.ModelViewSet):
             fecha__gte=inicio_semana,
             fecha__lte=fin_semana
         )
-        #TODO:Implementar logica si el habito es mensual
-        #total = registros.count()
+        # Calcular total según la frecuencia del hábito
         if(str.capitalize(habito.tipo_frecuencia) == "Diario"):
             total = 7
 
         elif(str.capitalize(habito.tipo_frecuencia) == "Semanal"):
             total = len(habito.dias)
+        
+        elif(str.capitalize(habito.tipo_frecuencia) == "Mensual"):
+            # Para hábitos mensuales: contar cuántos días configurados caen en la semana actual
+            if habito.dias and len(habito.dias) > 0:
+                total = 0
+                # Recorrer cada día de la semana
+                current_day = inicio_semana
+                while current_day <= fin_semana:
+                    dia_del_mes = current_day.day
+                    # Verificar si este día del mes está configurado en el hábito
+                    if dia_del_mes in habito.dias:
+                        total += 1
+                    current_day += timedelta(days=1)
+            else:
+                total = 0  # No hay días configurados
         
         else:
             total = 0
@@ -292,7 +306,7 @@ class HabitoViewSet(viewsets.ModelViewSet):
             fecha__lte=fin_mes
         )
 
-        #TODO:implementar logica de progreso si el habito es mensual
+        # Calcular total según la frecuencia del hábito
         if(str.capitalize(habito.tipo_frecuencia) == "Diario"):
             total = ultimo_dia
 
@@ -300,7 +314,13 @@ class HabitoViewSet(viewsets.ModelViewSet):
             total = len(habito.dias) * len(semanas_mes)
         
         elif(str.capitalize(habito.tipo_frecuencia) == "Mensual"):
-            total = 1
+            # Para hábitos mensuales: contar cuántos días configurados hay en el mes
+            if habito.dias and len(habito.dias) > 0:
+                # Filtrar días que sean válidos para el mes actual
+                dias_validos = [dia for dia in habito.dias if isinstance(dia, int) and 1 <= dia <= ultimo_dia]
+                total = len(dias_validos)
+            else:
+                total = 1  # Fallback si no hay días configurados
         
         else: 
             total = 0
