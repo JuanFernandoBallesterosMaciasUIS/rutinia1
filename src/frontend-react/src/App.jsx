@@ -14,6 +14,7 @@ import Welcome from './components/Welcome';
 import EditProfile from './components/EditProfile';
 import { habitsData as initialHabitsData } from './data/habitsData';
 import * as api from './services/api';
+import { getTodayString, getLocalDateString } from './services/dateHelpers';
 import * as localStorageService from './services/localStorage';
 
 // 🔧 Función helper para normalizar nombres de días
@@ -176,7 +177,7 @@ function App() {
 
   // Limpiar registros cuando es un nuevo día
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getCurrentDateString(); // Usar función helper con fecha local
     
     // Si es un nuevo día, resetear el estado de completados en localStorage
     if (lastCheckedDate && lastCheckedDate !== today) {
@@ -250,12 +251,55 @@ function App() {
       );
       
       setHabitsData(mappedHabits);
+      
+      // Cargar registros de todos los hábitos desde el backend
+      await loadRegistrosFromBackend(mappedHabits);
+      
     } catch (error) {
       console.error('Error al cargar hábitos:', error);
       setHabitsData([]);
       showErrorMessage('No se pudieron cargar los hábitos. Verifica que el servidor esté corriendo en http://localhost:8000');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Función para cargar registros desde el backend
+  const loadRegistrosFromBackend = async (habits) => {
+    try {
+      console.log('🔍 Cargando registros de hábitos desde el backend...');
+      
+      // Obtener todos los registros de todos los hábitos
+      const allRegistros = await api.getRegistros();
+      
+      console.log(`✅ Se encontraron ${allRegistros.length} registros`);
+      
+      // Convertir registros a formato { 'YYYY-MM-DD': [habitId1, habitId2, ...] }
+      const completedByDate = {};
+      
+      allRegistros.forEach(registro => {
+        if (registro.estado === true) {
+          const fecha = registro.fecha; // Ya viene en formato YYYY-MM-DD
+          const habitoId = typeof registro.habito === 'object' ? registro.habito.id : registro.habito;
+          
+          if (!completedByDate[fecha]) {
+            completedByDate[fecha] = [];
+          }
+          
+          if (!completedByDate[fecha].includes(habitoId)) {
+            completedByDate[fecha].push(habitoId);
+          }
+        }
+      });
+      
+      console.log('✅ Registros organizados por fecha:', completedByDate);
+      
+      // Actualizar el estado y localStorage
+      setCompletedHabits(completedByDate);
+      localStorageService.saveCompletedHabits(completedByDate);
+      
+    } catch (error) {
+      console.error('Error al cargar registros:', error);
     }
   };
 
@@ -392,8 +436,8 @@ function App() {
   };
 
   const getCurrentDateString = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    // Usar helper de dateHelpers para obtener fecha local
+    return getTodayString();
   };
 
   // Función para cambiar de vista con animación

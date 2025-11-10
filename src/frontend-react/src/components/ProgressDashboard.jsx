@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ProgressCard from './ProgressCard';
 import { getProgresosMultiples } from '../services/api';
+import { getLocalDateString, getTodayString } from '../services/dateHelpers';
 
 const ProgressDashboard = ({ habitos, completedHabits }) => {
   const [progresos, setProgresos] = useState([]);
@@ -85,7 +86,7 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
       const date = new Date(targetDate);
       date.setDate(targetDate.getDate() - (currentDay - index));
 
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = getLocalDateString(date); // Usar fecha local
       const completedCount = completedHabits[dateStr]?.length || 0;
       const totalHabits = habitos.length;
 
@@ -121,7 +122,7 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
     // Agregar días del mes anterior para completar la primera semana
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const date = new Date(targetYear, targetMonth, -i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = getLocalDateString(date); // Usar fecha local
       const completedCount = completedHabits[dateStr]?.length || 0;
       const totalHabits = habitos.length;
 
@@ -139,7 +140,7 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
     const daysInMonth = lastDay.getDate();
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(targetYear, targetMonth, day);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = getLocalDateString(date); // Usar fecha local
       const completedCount = completedHabits[dateStr]?.length || 0;
       const totalHabits = habitos.length;
 
@@ -158,7 +159,7 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
     if (remainingDays < 7) {
       for (let day = 1; day <= remainingDays; day++) {
         const date = new Date(targetYear, targetMonth + 1, day);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(date); // Usar fecha local
         const completedCount = completedHabits[dateStr]?.length || 0;
         const totalHabits = habitos.length;
 
@@ -297,7 +298,7 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
             
             // Verificar si es el día actual
             const today = new Date();
-            const isToday = data.date === today.toISOString().split('T')[0];
+            const isToday = data.date === getTodayString();
             
             return (
               <div 
@@ -406,7 +407,7 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
             
             // Verificar si es el día actual
             const today = new Date();
-            const isToday = data.date === today.toISOString().split('T')[0];
+            const isToday = data.date === getTodayString();
             
             return (
               <div 
