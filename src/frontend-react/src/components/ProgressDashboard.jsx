@@ -73,6 +73,48 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
     });
   };
 
+  // Función auxiliar para normalizar nombres de días
+  const normalizeDayName = (dayName) => {
+    const dayMap = {
+      'lunes': 'Lunes',
+      'martes': 'Martes',
+      'miércoles': 'Miercoles',
+      'miercoles': 'Miercoles',
+      'jueves': 'Jueves',
+      'viernes': 'Viernes',
+      'sábado': 'Sabado',
+      'sabado': 'Sabado',
+      'domingo': 'Domingo'
+    };
+    return dayMap[dayName.toLowerCase()] || dayName;
+  };
+
+  // Función auxiliar para obtener el nombre del día
+  const getDayName = (date) => {
+    const days = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+    return days[date.getDay()];
+  };
+
+  // Función auxiliar para contar hábitos que aplican en un día específico
+  const getHabitsForDay = (date) => {
+    const dayName = getDayName(date);
+    
+    return habitos.filter(habit => {
+      // Si el hábito es diario o no tiene días definidos, aplica todos los días
+      if (habit.frequency === 'diario' || !habit.days || habit.days.length === 0) {
+        return true;
+      }
+      
+      // Si es semanal, verificar si aplica en este día
+      if (habit.frequency === 'semanal' && habit.days && habit.days.length > 0) {
+        const normalizedHabitDays = habit.days.map(day => normalizeDayName(day));
+        return normalizedHabitDays.includes(dayName);
+      }
+      
+      return false;
+    });
+  };
+
   // Función para obtener datos de progreso semanal (de lunes a domingo)
   const getWeeklyData = (weekDate = selectedWeek) => {
     const daysOfWeek = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -87,8 +129,16 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
       date.setDate(targetDate.getDate() - (currentDay - index));
 
       const dateStr = getLocalDateString(date); // Usar fecha local
-      const completedCount = completedHabits[dateStr]?.length || 0;
-      const totalHabits = habitos.length;
+      
+      // Obtener hábitos que aplican para este día específico
+      const habitsForDay = getHabitsForDay(date);
+      const totalHabits = habitsForDay.length;
+      
+      // Contar solo los hábitos completados que también aplican para este día
+      const completedHabitIds = completedHabits[dateStr] || [];
+      const completedCount = completedHabitIds.filter(habitId => 
+        habitsForDay.some(h => h.id === habitId)
+      ).length;
 
       return {
         day,
@@ -123,8 +173,16 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       const date = new Date(targetYear, targetMonth, -i);
       const dateStr = getLocalDateString(date); // Usar fecha local
-      const completedCount = completedHabits[dateStr]?.length || 0;
-      const totalHabits = habitos.length;
+      
+      // Obtener hábitos que aplican para este día específico
+      const habitsForDay = getHabitsForDay(date);
+      const totalHabits = habitsForDay.length;
+      
+      // Contar solo los hábitos completados que también aplican para este día
+      const completedHabitIds = completedHabits[dateStr] || [];
+      const completedCount = completedHabitIds.filter(habitId => 
+        habitsForDay.some(h => h.id === habitId)
+      ).length;
 
       monthlyData.push({
         day: date.getDate(),
@@ -141,8 +199,16 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(targetYear, targetMonth, day);
       const dateStr = getLocalDateString(date); // Usar fecha local
-      const completedCount = completedHabits[dateStr]?.length || 0;
-      const totalHabits = habitos.length;
+      
+      // Obtener hábitos que aplican para este día específico
+      const habitsForDay = getHabitsForDay(date);
+      const totalHabits = habitsForDay.length;
+      
+      // Contar solo los hábitos completados que también aplican para este día
+      const completedHabitIds = completedHabits[dateStr] || [];
+      const completedCount = completedHabitIds.filter(habitId => 
+        habitsForDay.some(h => h.id === habitId)
+      ).length;
 
       monthlyData.push({
         day,
@@ -160,8 +226,16 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
       for (let day = 1; day <= remainingDays; day++) {
         const date = new Date(targetYear, targetMonth + 1, day);
         const dateStr = getLocalDateString(date); // Usar fecha local
-        const completedCount = completedHabits[dateStr]?.length || 0;
-        const totalHabits = habitos.length;
+        
+        // Obtener hábitos que aplican para este día específico
+        const habitsForDay = getHabitsForDay(date);
+        const totalHabits = habitsForDay.length;
+        
+        // Contar solo los hábitos completados que también aplican para este día
+        const completedHabitIds = completedHabits[dateStr] || [];
+        const completedCount = completedHabitIds.filter(habitId => 
+          habitsForDay.some(h => h.id === habitId)
+        ).length;
 
         monthlyData.push({
           day: date.getDate(),
