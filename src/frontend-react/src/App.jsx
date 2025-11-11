@@ -12,10 +12,19 @@ import ProgressDashboard from './components/ProgressDashboard';
 import Login from './components/Login';
 import Welcome from './components/Welcome';
 import EditProfile from './components/EditProfile';
+import NotificationsView from './components/NotificationsView';
+import NotificationBell from './components/NotificationBell';
+import { NotificationToastContainer } from './components/NotificationToast';
 import { habitsData as initialHabitsData } from './data/habitsData';
 import * as api from './services/api';
 import { getTodayString, getLocalDateString } from './services/dateHelpers';
 import * as localStorageService from './services/localStorage';
+import {
+  verificarNotificacionesHabitos,
+  mostrarNotificacion,
+  solicitarPermisoNotificaciones,
+  crearNotificacion
+} from './services/notificationService';
 
 // 🔧 Función helper para normalizar nombres de días
 // Convierte abreviaturas ('lun', 'mar') a nombres completos ('Lunes', 'Martes')
@@ -172,6 +181,10 @@ function App() {
   const [lastCheckedDate, setLastCheckedDate] = useState(() => {
     return localStorage.getItem('lastCheckedDate');
   });
+  
+  // Estado para notificaciones
+  const [notificationToasts, setNotificationToasts] = useState([]);
+  const [lastNotificationCheck, setLastNotificationCheck] = useState(null);
 
   // Función auxiliar para obtener el ID del usuario actual
   const getUserId = () => {
@@ -225,6 +238,18 @@ function App() {
       loadHabitsFromBackend();
     }
   }, [isAuthenticated, usuario]);
+
+  // Listener para eventos de cambio de vista desde otros componentes
+  useEffect(() => {
+    const handleChangeView = (event) => {
+      if (event.detail?.view) {
+        handleViewChange(event.detail.view);
+      }
+    };
+
+    window.addEventListener('changeView', handleChangeView);
+    return () => window.removeEventListener('changeView', handleChangeView);
+  }, []);
 
   // Función para cargar hábitos del backend
   const loadHabitsFromBackend = async () => {
@@ -314,6 +339,96 @@ function App() {
       document.documentElement.classList.add('dark');
     }
   }, []);
+
+  // 🔔 Sistema de notificaciones
+  // Solicitar permisos al cargar la app (solo una vez)
+  useEffect(() => {
+    if (isAuthenticated) {
+      solicitarPermisoNotificaciones();
+    }
+  }, [isAuthenticated]);
+
+  // Verificar notificaciones cada minuto
+  useEffect(() => {
+    if (!isAuthenticated || !usuario || habitsData.length === 0) return;
+
+    // Función para verificar y mostrar notificaciones
+    const checkNotifications = () => {
+      // Obtener hábitos que aplican hoy
+      const today = new Date();
+      const currentDay = getDayOfWeek(today);
+      const dayOfMonth = today.getDate();
+      
+      const todayHabits = habitsData.filter(habit => {
+        const frequency = (habit.frequency || '').toLowerCase();
+        
+        if (frequency === 'diario' || frequency === 'diaria') {
+          return true;
+        } else if (frequency === 'semanal') {
+          if (!habit.days || habit.days.length === 0) return false;
+          const normalizedHabitDays = habit.days.map(day => normalizeDayName(day));
+          return normalizedHabitDays.includes(currentDay);
+        } else if (frequency === 'mensual') {
+          if (!habit.days || habit.days.length === 0) return false;
+          return habit.days.includes(dayOfMonth);
+        }
+        return false;
+      });
+
+      // Verificar notificaciones para hábitos de hoy
+      verificarNotificacionesHabitos(todayHabits, async (habito) => {
+        console.log('🔔 Notificación activada para:', habito.name);
+        
+        // Crear el objeto de notificación para el toast
+        const notificationData = {
+          id: Date.now(),
+          titulo: `⏰ Recordatorio de hábito`,
+          mensaje: `Es hora de: ${habito.name}`,
+          habito: habito,
+          fecha_hora: new Date().toISOString(),
+          leida: false
+        };
+
+        // Mostrar toast en la UI
+        setNotificationToasts(prev => [...prev, notificationData]);
+
+        // Guardar en el historial del backend
+        try {
+          const userId = usuario.id || usuario._id;
+          await crearNotificacion({
+            usuario: userId,
+            habito: habito.id,
+            titulo: notificationData.titulo,
+            mensaje: notificationData.mensaje
+          });
+        } catch (error) {
+          console.error('Error al guardar notificación en historial:', error);
+        }
+
+        // Mostrar notificación del navegador y reproducir sonido
+        mostrarNotificacion(habito);
+      });
+    };
+
+    // Ejecutar inmediatamente
+    checkNotifications();
+
+    // Ejecutar cada minuto
+    const interval = setInterval(checkNotifications, 60000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, usuario, habitsData]);
+
+  // Función para cerrar un toast de notificación
+  const handleCloseNotificationToast = (toastId) => {
+    setNotificationToasts(prev => prev.filter(t => t.id !== toastId));
+  };
+
+  // Función para marcar notificación como leída desde el toast
+  const handleMarkNotificationAsRead = async (toastId) => {
+    // Aquí podrías hacer la llamada al backend si el toast tiene un ID de notificación real
+    handleCloseNotificationToast(toastId);
+  };
 
   // 🆕 Efecto para inicializar registros del día automáticamente
   useEffect(() => {
@@ -678,6 +793,7 @@ function App() {
             onLogout={handleLogout}
             usuario={usuario}
             onEditProfile={() => setShowEditProfileModal(true)}
+            onViewChange={handleViewChange}
           />
 
           {/* Overlay para móvil */}
@@ -736,8 +852,12 @@ function App() {
                   {currentView === 'calendar' && 'Calendario'}
                   {currentView === 'habits' && 'Todos mis hábitos'}
                   {currentView === 'analytics' && 'Dashboard de Progreso'}
+                  {currentView === 'notifications' && 'Notificaciones'}
                 </h1>
               </div>
+              
+              {/* Campana de notificaciones */}
+              <NotificationBell usuario={usuario} />
             </div>
           </div>
         </header>
@@ -794,6 +914,10 @@ function App() {
             {currentView === 'analytics' && (
               <ProgressDashboard habitos={habitsData} completedHabits={completedHabits} />
             )}
+            
+            {currentView === 'notifications' && (
+              <NotificationsView usuario={usuario} />
+            )}
           </div>
         </main>
 
@@ -807,6 +931,13 @@ function App() {
 
               {/* Toast Container */}
               <ToastContainer />
+              
+              {/* Contenedor de toasts de notificaciones */}
+              <NotificationToastContainer
+                notifications={notificationToasts}
+                onClose={handleCloseNotificationToast}
+                onMarkAsRead={handleMarkNotificationAsRead}
+              />
             </div>
           )
         } />

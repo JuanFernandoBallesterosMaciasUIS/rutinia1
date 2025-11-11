@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_mongoengine import serializers as mon
 
-from .models import Usuario, Habito, RegistroHabito, Rol, Categoria, Notificacion, Tool
+from .models import Usuario, Habito, RegistroHabito, Rol, Categoria, Notificacion, HistorialNotificacion, Tool
 
 class ToolSerializer(mon.DocumentSerializer):
     class Meta:
@@ -81,7 +81,29 @@ class UsuarioSerializer(serializers.Serializer):
 class NotificacionSerializer(mon.EmbeddedDocumentSerializer):
     class Meta:
         model = Notificacion
-        fields = ['hora']
+        fields = ['hora', 'activa']
+
+class HistorialNotificacionSerializer(mon.DocumentSerializer):
+    class Meta:
+        model = HistorialNotificacion
+        fields = '__all__'
+    
+    def to_representation(self, instance):
+        """Incluye información básica del hábito"""
+        data = super().to_representation(instance)
+        
+        if instance.usuario:
+            data['usuario'] = str(instance.usuario.id)
+        
+        if instance.habito:
+            data['habito'] = {
+                'id': str(instance.habito.id),
+                'nombre': instance.habito.nombre,
+                'icono': instance.habito.icono if hasattr(instance.habito, 'icono') else 'fitness_center',
+                'color': instance.habito.color if hasattr(instance.habito, 'color') else 'blue'
+            }
+        
+        return data
 
 class CategoriaSerializer(mon.DocumentSerializer):
     class Meta:
@@ -89,9 +111,44 @@ class CategoriaSerializer(mon.DocumentSerializer):
         fields = '__all__'
 
 class HabitoSerializer(mon.DocumentSerializer):
+    notificaciones = NotificacionSerializer(many=True, required=False)
+    
     class Meta:
         model = Habito
         fields = '__all__'
+
+    def create(self, validated_data):
+        """Crear hábito con notificaciones embebidas"""
+        notificaciones_data = validated_data.pop('notificaciones', [])
+        
+        # Crear el hábito
+        habito = Habito(**validated_data)
+        
+        # Agregar notificaciones como objetos Notificacion
+        if notificaciones_data:
+            habito.notificaciones = [
+                Notificacion(**notif_data) for notif_data in notificaciones_data
+            ]
+        
+        habito.save()
+        return habito
+    
+    def update(self, instance, validated_data):
+        """Actualizar hábito con notificaciones embebidas"""
+        notificaciones_data = validated_data.pop('notificaciones', None)
+        
+        # Actualizar campos básicos
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        # Actualizar notificaciones si se proporcionaron
+        if notificaciones_data is not None:
+            instance.notificaciones = [
+                Notificacion(**notif_data) for notif_data in notificaciones_data
+            ]
+        
+        instance.save()
+        return instance
 
     def to_representation(self, instance):
         """
@@ -107,6 +164,12 @@ class HabitoSerializer(mon.DocumentSerializer):
         # Categoría puede ir completa (no tiene referencias circulares)
         if instance.categoria:
             data['categoria'] = CategoriaSerializer(instance.categoria).data
+        
+        # Asegurar que las notificaciones se serialicen correctamente
+        if instance.notificaciones:
+            data['notificaciones'] = NotificacionSerializer(instance.notificaciones, many=True).data
+        else:
+            data['notificaciones'] = []
         
         return data
 

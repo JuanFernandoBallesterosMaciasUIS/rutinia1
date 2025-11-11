@@ -1,5 +1,5 @@
 from rest_framework.routers import DefaultRouter
-from .views import UsuarioViewSet, ToolViewSet, RolViewSet, HabitoViewSet, CategoriaViewSet, RegistroHabitoViewSet
+from .views import UsuarioViewSet, ToolViewSet, RolViewSet, HabitoViewSet, CategoriaViewSet, RegistroHabitoViewSet, HistorialNotificacionViewSet
 from .authentication import register, login, refresh_token, get_user_info, logout
 from django.urls import path, include
 
@@ -10,6 +10,7 @@ router.register(r'tools', ToolViewSet, basename='tool')
 router.register(r'categorias', CategoriaViewSet, basename='categoria')
 router.register(r'habitos', HabitoViewSet, basename="habito")
 router.register(r'registros', RegistroHabitoViewSet, basename='registro')
+router.register(r'notificaciones', HistorialNotificacionViewSet, basename='notificacion')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function Sidebar({ isOpen, onClose, darkMode, onToggleDarkMode, onLogout, usuario, onEditProfile }) {
+function Sidebar({ isOpen, onClose, darkMode, onToggleDarkMode, onLogout, usuario, onEditProfile, onViewChange }) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Función para manejar logout con animación
@@ -74,10 +74,17 @@ function Sidebar({ isOpen, onClose, darkMode, onToggleDarkMode, onLogout, usuari
           </button>
           <button 
             className="flex items-center p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative text-left" 
+            onClick={() => {
+              if (onViewChange) {
+                onViewChange('notifications');
+              }
+              if (onClose) {
+                onClose();
+              }
+            }}
           >
             <span className="material-icons mr-4">notifications</span>
             <span>Notificaciones</span>
-            <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
           </button>
           
           {/* Separador */}

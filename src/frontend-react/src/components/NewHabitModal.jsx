@@ -9,13 +9,15 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
     color: '',
     description: '',
     frequency: '',
-    days: []
+    days: [],
+    notificaciones: []
   });
 
   const [selectedIcon, setSelectedIcon] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedDays, setSelectedDays] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
+  const [newNotificationTime, setNewNotificationTime] = useState('');
 
   // Manejar cierre con animación
   const handleClose = () => {
@@ -36,11 +38,13 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
         color: '',
         description: '',
         frequency: '',
-        days: []
+        days: [],
+        notificaciones: []
       });
       setSelectedIcon(null);
       setSelectedColor(null);
       setSelectedDays([]);
+      setNewNotificationTime('');
     }
   }, [isOpen]);
 
@@ -70,6 +74,57 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
       ...formData, 
       frequency: newFrequency,
       days: [] // Limpiar días al cambiar frecuencia
+    });
+  };
+
+  // Agregar notificación
+  const handleAddNotification = () => {
+    if (!newNotificationTime) {
+      alert('Por favor ingresa una hora para la notificación');
+      return;
+    }
+
+    // Validar formato HH:MM
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(newNotificationTime)) {
+      alert('Por favor ingresa una hora válida en formato HH:MM (ej: 08:00, 14:30)');
+      return;
+    }
+
+    // Verificar que no exista ya
+    const exists = formData.notificaciones.some(n => n.hora === newNotificationTime);
+    if (exists) {
+      alert('Ya existe una notificación para esta hora');
+      return;
+    }
+
+    const newNotification = {
+      hora: newNotificationTime,
+      activa: true
+    };
+
+    setFormData({
+      ...formData,
+      notificaciones: [...formData.notificaciones, newNotification]
+    });
+    setNewNotificationTime('');
+  };
+
+  // Eliminar notificación
+  const handleRemoveNotification = (hora) => {
+    setFormData({
+      ...formData,
+      notificaciones: formData.notificaciones.filter(n => n.hora !== hora)
+    });
+  };
+
+  // Toggle activar/desactivar notificación
+  const handleToggleNotification = (hora) => {
+    setFormData({
+      ...formData,
+      notificaciones: formData.notificaciones.map(n =>
+        n.hora === hora ? { ...n, activa: !n.activa } : n
+      )
     });
   };
 
@@ -274,6 +329,85 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
                 className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all resize-none"
               />
             </div>
+          </div>
+
+          {/* Notificaciones */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-2">
+              🔔 Notificaciones (opcional)
+            </label>
+            <p className="text-xs text-subtext-light dark:text-subtext-dark mb-3">
+              Configura recordatorios para este hábito
+            </p>
+
+            {/* Input para agregar nueva notificación */}
+            <div className="flex gap-2 mb-3">
+              <div className="flex-1">
+                <input
+                  type="time"
+                  value={newNotificationTime}
+                  onChange={(e) => setNewNotificationTime(e.target.value)}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                  placeholder="HH:MM"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAddNotification}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-all flex items-center gap-1"
+              >
+                <span className="material-icons text-sm">add</span>
+                Agregar
+              </button>
+            </div>
+
+            {/* Lista de notificaciones configuradas */}
+            {formData.notificaciones.length > 0 && (
+              <div className="space-y-2">
+                {formData.notificaciones.map((notif) => (
+                  <div
+                    key={notif.hora}
+                    className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleToggleNotification(notif.hora)}
+                      className={`p-1 rounded transition-all ${
+                        notif.activa
+                          ? 'text-green-500 hover:bg-green-100 dark:hover:bg-green-900/20'
+                          : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                      title={notif.activa ? 'Desactivar' : 'Activar'}
+                    >
+                      <span className="material-icons text-lg">
+                        {notif.activa ? 'notifications_active' : 'notifications_off'}
+                      </span>
+                    </button>
+                    <span className={`flex-1 text-sm font-medium ${
+                      notif.activa
+                        ? 'text-text-light dark:text-text-dark'
+                        : 'text-gray-400 line-through'
+                    }`}>
+                      {notif.hora}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNotification(notif.hora)}
+                      className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-all"
+                      title="Eliminar"
+                    >
+                      <span className="material-icons text-lg">delete</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {formData.notificaciones.length === 0 && (
+              <div className="text-center py-4 text-xs text-subtext-light dark:text-subtext-dark">
+                No hay notificaciones configuradas
+              </div>
+            )}
           </div>
 
           {/* Selector de días de la semana (solo visible cuando es semanal) */}

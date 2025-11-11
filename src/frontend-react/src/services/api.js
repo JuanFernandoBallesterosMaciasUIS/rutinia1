@@ -297,7 +297,8 @@ export const mapHabitoToBackend = (frontendHabito, usuarioId = '507f1f77bcf86cd7
     dias: (frecuencia === 'semanal' || frecuencia === 'mensual') ? (frontendHabito.days || []) : [],
     publico: false,
     activo: true,
-    notificaciones: [],
+    // ✨ NOTIFICACIONES: incluir las notificaciones del hábito
+    notificaciones: frontendHabito.notificaciones || [],
     // ✨ NUEVOS CAMPOS: icono y color
     icono: frontendHabito.icon || 'fitness_center',
     color: frontendHabito.color || 'blue'
@@ -359,6 +360,7 @@ export const mapHabitoToFrontend = (backendHabito) => {
     description: backendHabito.descripcion || '',
     frequency: normalizeFrequency(backendHabito.tipo_frecuencia),
     days: backendHabito.dias || [],
+    notificaciones: backendHabito.notificaciones || [],
     // Campos adicionales del backend
     dificultad: backendHabito.dificultad,
     fecha_inicio: backendHabito.fecha_inicio,

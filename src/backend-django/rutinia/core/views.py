@@ -16,8 +16,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from .models import Usuario, Habito, RegistroHabito, Rol, Categoria, Notificacion, Tool
-from .serializers import UsuarioSerializer, RolSerializer, HabitoSerializer, CategoriaSerializer, RegistroHabitoSerializer, ToolSerializer, NotificacionSerializer
+from .models import Usuario, Habito, RegistroHabito, Rol, Categoria, Notificacion, HistorialNotificacion, Tool
+from .serializers import UsuarioSerializer, RolSerializer, HabitoSerializer, CategoriaSerializer, RegistroHabitoSerializer, ToolSerializer, NotificacionSerializer, HistorialNotificacionSerializer
 
 from .pagination import HabitoPagination
 
@@ -373,3 +373,135 @@ class ToolViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Tool.objects.all()
+
+
+class HistorialNotificacionViewSet(viewsets.ModelViewSet):
+    '''
+    ViewSet para gestionar el historial de notificaciones de los usuarios.
+    '''
+    lookup_field = 'id'
+    serializer_class = HistorialNotificacionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Filtrar notificaciones por usuario si se proporciona el parámetro"""
+        queryset = HistorialNotificacion.objects.all()
+        usuario_id = self.request.query_params.get('usuario', None)
+        
+        if usuario_id:
+            try:
+                queryset = queryset.filter(usuario=ObjectId(usuario_id))
+            except:
+                pass
+        
+        # Ordenar por fecha_hora descendente (más recientes primero)
+        return queryset.order_by('-fecha_hora')
+    
+    @action(detail=False, methods=['get'])
+    def no_leidas(self, request):
+        """Obtener notificaciones no leídas del usuario"""
+        usuario_id = request.query_params.get('usuario', None)
+        
+        if not usuario_id:
+            return Response(
+                {"error": "Se requiere el parámetro 'usuario'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            notificaciones = HistorialNotificacion.objects(
+                usuario=ObjectId(usuario_id),
+                leida=False
+            ).order_by('-fecha_hora')
+            
+            serializer = self.get_serializer(notificaciones, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['post'])
+    def marcar_leida(self, request, id=None):
+        """Marcar una notificación como leída"""
+        try:
+            notificacion = self.get_object()
+            notificacion.leida = True
+            notificacion.fecha_lectura = datetime.now()
+            notificacion.save()
+            
+            serializer = self.get_serializer(notificacion)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def marcar_todas_leidas(self, request):
+        """Marcar todas las notificaciones de un usuario como leídas"""
+        usuario_id = request.data.get('usuario', None)
+        
+        if not usuario_id:
+            return Response(
+                {"error": "Se requiere el campo 'usuario'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            notificaciones = HistorialNotificacion.objects(
+                usuario=ObjectId(usuario_id),
+                leida=False
+            )
+            
+            count = 0
+            for notif in notificaciones:
+                notif.leida = True
+                notif.fecha_lectura = datetime.now()
+                notif.save()
+                count += 1
+            
+            return Response({
+                "mensaje": f"{count} notificaciones marcadas como leídas",
+                "total": count
+            })
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def crear_notificacion(self, request):
+        """Crear una nueva notificación (usado por el sistema de recordatorios)"""
+        try:
+            usuario_id = request.data.get('usuario')
+            habito_id = request.data.get('habito')
+            titulo = request.data.get('titulo')
+            mensaje = request.data.get('mensaje')
+            
+            if not all([usuario_id, habito_id, titulo, mensaje]):
+                return Response(
+                    {"error": "Faltan campos requeridos"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            notificacion = HistorialNotificacion(
+                usuario=ObjectId(usuario_id),
+                habito=ObjectId(habito_id),
+                titulo=titulo,
+                mensaje=mensaje,
+                fecha_hora=datetime.now(),
+                leida=False
+            )
+            notificacion.save()
+            
+            serializer = self.get_serializer(notificacion)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

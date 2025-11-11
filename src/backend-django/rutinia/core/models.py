@@ -29,11 +29,10 @@ class Usuario(Document):
 class Categoria(Document):
     nombre = fields.StringField(max_length=50)
 
-
-# --- Notificación ---
+# --- Notificación (configuración de hora en hábito) ---
 class Notificacion(EmbeddedDocument):
-    hora = fields.DateTimeField()
-
+    hora = fields.StringField(max_length=5)  # Formato: "HH:MM" (ej: "09:00", "14:30")
+    activa = fields.BooleanField(default=True)
 
 # --- Hábito ---
 class Habito(Document):
@@ -68,3 +67,16 @@ class Tool(Document):
     label = fields.StringField(required=True)
     description = fields.StringField(required=True, null=True)
     inputs = fields.ListField(fields.EmbeddedDocumentField(ToolInput))
+
+
+
+
+# --- Historial de Notificaciones (notificaciones enviadas) ---
+class HistorialNotificacion(Document):
+    usuario = fields.ReferenceField(Usuario, reverse_delete_rule=CASCADE)
+    habito = fields.ReferenceField(Habito, reverse_delete_rule=CASCADE)
+    titulo = fields.StringField(max_length=100)
+    mensaje = fields.StringField(max_length=200)
+    fecha_hora = fields.DateTimeField()
+    leida = fields.BooleanField(default=False)
+    fecha_lectura = fields.DateTimeField(required=False)
