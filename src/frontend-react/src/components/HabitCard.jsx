@@ -60,16 +60,16 @@ const HabitCard = ({
 
   return (
     <div
-      className={`bg-card-light dark:bg-card-dark rounded-large p-4 sm:p-6 shadow-sm hover:shadow-md transition-all relative ${
+      className={`bg-card-light dark:bg-card-dark rounded-large p-3 sm:p-4 md:p-6 shadow-sm hover:shadow-md transition-all relative ${
         isCompleted ? 'opacity-80' : ''
       }`}
     >
       {/* Header: Icono, Título y Botón de Editar */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-          {/* Icono del hábito */}
-          <div className={`w-12 h-12 sm:w-14 sm:h-14 ${colorClasses[habit.color] || 'bg-blue-500'} rounded-lg flex items-center justify-center flex-shrink-0`}>
-            <span className="material-icons text-white text-2xl sm:text-3xl">
+      <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
+          {/* Icono del hábito - más pequeño en móvil */}
+          <div className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 ${colorClasses[habit.color] || 'bg-blue-500'} rounded-lg flex items-center justify-center flex-shrink-0`}>
+            <span className="material-icons text-white text-lg sm:text-xl md:text-3xl">
               {habit.icon || 'fitness_center'}
             </span>
           </div>
@@ -77,7 +77,7 @@ const HabitCard = ({
           {/* Título y categoría */}
           <div className="flex-1 min-w-0">
             <h3 
-              className={`font-semibold text-base sm:text-lg text-text-light dark:text-text-dark truncate cursor-help ${
+              className={`font-semibold text-sm sm:text-base md:text-lg text-text-light dark:text-text-dark truncate cursor-help ${
                 isCompleted ? 'line-through' : ''
               }`}
               title={habit.name}
@@ -90,31 +90,31 @@ const HabitCard = ({
           </div>
         </div>
         
-        {/* Botón de editar */}
+        {/* Botón de editar - más compacto */}
         <button 
           onClick={handleEdit}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all flex-shrink-0"
+          className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all flex-shrink-0"
           aria-label="Editar hábito"
         >
-          <span className="material-icons text-subtext-light dark:text-subtext-dark text-xl">
+          <span className="material-icons text-subtext-light dark:text-subtext-dark text-lg sm:text-xl">
             edit
           </span>
         </button>
       </div>
 
       {/* Información del hábito y botón de completar */}
-      <div className="flex items-end justify-between">
-        <div className="space-y-2 flex-1">
+      <div className="flex items-end justify-between gap-2">
+        <div className="space-y-1.5 sm:space-y-2 flex-1 min-w-0">
           {/* Frecuencia */}
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-subtext-light dark:text-subtext-dark">
-            <span className="material-icons text-sm sm:text-base">schedule</span>
-            <span>{formatFrequency()}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-subtext-light dark:text-subtext-dark">
+            <span className="material-icons text-xs sm:text-base flex-shrink-0">schedule</span>
+            <span className="truncate">{formatFrequency()}</span>
           </div>
           
           {/* Racha */}
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-subtext-light dark:text-subtext-dark">
-            <span className="material-icons text-sm sm:text-base">local_fire_department</span>
-            <span>{habit.streak || 0} días</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-subtext-light dark:text-subtext-dark">
+            <span className="material-icons text-xs sm:text-base flex-shrink-0">local_fire_department</span>
+            <span className="truncate">{habit.streak || 0} días</span>
           </div>
         </div>
 
@@ -122,10 +122,10 @@ const HabitCard = ({
         {showCompleteButton && (
           <button
             onClick={handleComplete}
-            className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all hover:bg-gray-100 dark:hover:bg-gray-700"
             aria-label={isCompleted ? 'Hábito completado' : 'Marcar como completado'}
           >
-            <span className={`material-icons text-3xl transition-colors ${
+            <span className={`material-icons text-2xl sm:text-3xl transition-colors ${
               isCompleted 
                 ? 'text-green-500' 
                 : 'text-gray-400 dark:text-gray-500'
