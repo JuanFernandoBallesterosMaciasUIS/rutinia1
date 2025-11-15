@@ -1,15 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import HabitCard from './HabitCard';
+import { getCategorias } from '../services/api';
 
 const HabitsView = ({ habits, completedHabits, calculateStreak, onEditHabit, onDeleteHabit }) => {
   const [currentFilter, setCurrentFilter] = useState('todos');
+  const [categoryFilter, setCategoryFilter] = useState('todas');
+  const [categorias, setCategorias] = useState([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(false);
+
+  // Cargar categorías al montar el componente
+  useEffect(() => {
+    const loadCategorias = async () => {
+      setLoadingCategorias(true);
+      try {
+        const data = await getCategorias();
+        setCategorias(data);
+      } catch (error) {
+        console.error('Error al cargar categorías:', error);
+        setCategorias([]);
+      } finally {
+        setLoadingCategorias(false);
+      }
+    };
+    loadCategorias();
+  }, []);
 
   // Filtrar hábitos según el filtro seleccionado
   const getFilteredHabits = () => {
-    if (currentFilter === 'todos') {
-      return habits;
+    let filtered = habits;
+    
+    // Filtrar por frecuencia
+    if (currentFilter !== 'todos') {
+      filtered = filtered.filter(habit => habit.frequency === currentFilter);
     }
-    return habits.filter(habit => habit.frequency === currentFilter);
+    
+    // Filtrar por categoría
+    if (categoryFilter !== 'todas') {
+      filtered = filtered.filter(habit => habit.category === categoryFilter);
+    }
+    
+    return filtered;
   };
 
   const filteredHabits = getFilteredHabits();
@@ -26,16 +56,20 @@ const HabitsView = ({ habits, completedHabits, calculateStreak, onEditHabit, onD
   return (
     <div className="max-w-7xl mx-auto">
       {/* Filtros */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <button
-          className={getFilterButtonClass('todos')}
-          onClick={() => setCurrentFilter('todos')}
-        >
-          <span className="flex items-center gap-1.5">
-            <span className="material-icons text-base sm:text-lg">apps</span>
-            <span>Todos</span>
-          </span>
-        </button>
+      <div className="space-y-4 mb-6">
+        {/* Filtros de frecuencia */}
+        <div>
+          <label className="block text-xs font-medium text-subtext-light dark:text-subtext-dark mb-2">Filtrar por frecuencia:</label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className={getFilterButtonClass('todos')}
+              onClick={() => setCurrentFilter('todos')}
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="material-icons text-base sm:text-lg">apps</span>
+                <span>Todos</span>
+              </span>
+            </button>
         <button
           className={getFilterButtonClass('diario')}
           onClick={() => setCurrentFilter('diario')}
@@ -63,6 +97,36 @@ const HabitsView = ({ habits, completedHabits, calculateStreak, onEditHabit, onD
             <span>Mensuales</span>
           </span>
         </button>
+          </div>
+        </div>
+        
+        {/* Filtro de categorías */}
+        <div>
+          <label className="block text-xs font-medium text-subtext-light dark:text-subtext-dark mb-2">Filtrar por categoría:</label>
+          <div className="flex items-center gap-2">
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              disabled={loadingCategorias}
+              className="px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm bg-card-light dark:bg-card-dark text-text-light dark:text-text-dark border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
+            >
+              <option value="todas">{loadingCategorias ? 'Cargando...' : 'Todas las categorías'}</option>
+              {categorias.map(cat => (
+                <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>
+              ))}
+            </select>
+            {categoryFilter !== 'todas' && (
+              <button
+                onClick={() => setCategoryFilter('todas')}
+                className="px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"
+                title="Limpiar filtro de categoría"
+              >
+                <span className="material-icons text-base">close</span>
+                <span className="hidden sm:inline">Limpiar</span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Grid de hábitos */}

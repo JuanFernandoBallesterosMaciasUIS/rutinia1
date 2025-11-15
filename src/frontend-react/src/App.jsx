@@ -185,6 +185,11 @@ function App() {
   // Estado para notificaciones
   const [notificationToasts, setNotificationToasts] = useState([]);
   const [lastNotificationCheck, setLastNotificationCheck] = useState(null);
+  
+  // Estado para filtro de categorías en vista "Hábitos del día"
+  const [todayCategoryFilter, setTodayCategoryFilter] = useState('todas');
+  const [categorias, setCategorias] = useState([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(false);
 
   // Función auxiliar para obtener el ID del usuario actual
   const getUserId = () => {
@@ -236,6 +241,25 @@ function App() {
   useEffect(() => {
     if (isAuthenticated && usuario) {
       loadHabitsFromBackend();
+    }
+  }, [isAuthenticated, usuario]);
+
+  // Cargar categorías al iniciar (solo si está autenticado)
+  useEffect(() => {
+    if (isAuthenticated && usuario) {
+      const loadCategorias = async () => {
+        setLoadingCategorias(true);
+        try {
+          const data = await api.getCategorias();
+          setCategorias(data);
+        } catch (error) {
+          console.error('Error al cargar categorías:', error);
+          setCategorias([]);
+        } finally {
+          setLoadingCategorias(false);
+        }
+      };
+      loadCategorias();
     }
   }, [isAuthenticated, usuario]);
 
@@ -655,8 +679,13 @@ function App() {
     }
   };
 
-  // Obtener hábitos del día
-  const todayHabits = habitsData.filter(habit => habitAppliesToToday(habit));
+  // Obtener hábitos del día con filtro de categoría
+  const todayHabits = habitsData
+    .filter(habit => habitAppliesToToday(habit))
+    .filter(habit => {
+      if (todayCategoryFilter === 'todas') return true;
+      return habit.category === todayCategoryFilter;
+    });
 
   // Manejar creación de nuevo hábito
   const handleCreateHabit = async (newHabitData) => {
@@ -867,6 +896,34 @@ function App() {
           <div className={`view-container ${isViewTransitioning ? 'view-transition-exit' : 'view-transition-enter'}`}>
             {currentView === 'today' && (
               <div>
+                {/* Filtro de categorías */}
+                <div className="mb-6">
+                  <label className="block text-xs font-medium text-subtext-light dark:text-subtext-dark mb-2">Filtrar por categoría:</label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={todayCategoryFilter}
+                      onChange={(e) => setTodayCategoryFilter(e.target.value)}
+                      disabled={loadingCategorias}
+                      className="px-3 sm:px-4 py-2 rounded-lg font-semibold text-sm bg-card-light dark:bg-card-dark text-text-light dark:text-text-dark border-2 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
+                    >
+                      <option value="todas">{loadingCategorias ? 'Cargando...' : 'Todas las categorías'}</option>
+                      {categorias.map(cat => (
+                        <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>
+                      ))}
+                    </select>
+                    {todayCategoryFilter !== 'todas' && (
+                      <button
+                        onClick={() => setTodayCategoryFilter('todas')}
+                        className="px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex items-center gap-1"
+                        title="Limpiar filtro de categoría"
+                      >
+                        <span className="material-icons text-base">close</span>
+                        <span className="hidden sm:inline">Limpiar</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
                 {/* Grid de hábitos */}
                 <div className="habits-grid mb-8">
                   {todayHabits.length === 0 ? (
