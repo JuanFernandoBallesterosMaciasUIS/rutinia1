@@ -5,16 +5,16 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
     name: '',
     category: '',
-    icon: '',
-    color: '',
+    icon: 'article',
+    color: 'green',
     description: '',
     frequency: '',
     days: [],
     notificaciones: []
   });
 
-  const [selectedIcon, setSelectedIcon] = useState(null);
-  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedIcon, setSelectedIcon] = useState('article');
+  const [selectedColor, setSelectedColor] = useState('green');
   const [selectedDays, setSelectedDays] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
   const [newNotificationTime, setNewNotificationTime] = useState('');
@@ -34,15 +34,15 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
       setFormData({
         name: '',
         category: '',
-        icon: '',
-        color: '',
+        icon: 'article',
+        color: 'green',
         description: '',
         frequency: '',
         days: [],
         notificaciones: []
       });
-      setSelectedIcon(null);
-      setSelectedColor(null);
+      setSelectedIcon('article');
+      setSelectedColor('green');
       setSelectedDays([]);
       setNewNotificationTime('');
     }
@@ -131,15 +131,12 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.icon) {
-      alert('Por favor selecciona un icono');
-      return;
-    }
-    
-    if (!formData.color) {
-      alert('Por favor selecciona un color');
-      return;
-    }
+    // Aplicar valores por defecto si no se seleccionaron
+    const dataToSubmit = {
+      ...formData,
+      icon: formData.icon || 'article',
+      color: formData.color || 'green'
+    };
     
     if (formData.frequency === 'semanal' && selectedDays.length === 0) {
       alert('Por favor selecciona al menos un día de la semana');
@@ -151,7 +148,7 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
       return;
     }
     
-    onSubmit(formData);
+    onSubmit(dataToSubmit);
   };
 
   const getIconColorClass = (iconName) => {
@@ -231,10 +228,9 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
             {/* Categoría */}
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
-                Categoría *
+                Categoría
               </label>
               <select 
-                required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all"
@@ -252,7 +248,7 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
             {/* Icono */}
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
-                Icono *
+                Icono (opcional)
               </label>
               <div className="grid grid-cols-6 gap-1.5">
                 {availableIcons.map(icon => (
@@ -277,7 +273,7 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
             {/* Color */}
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
-                Color *
+                Color del icono (opcional)
               </label>
               <div className="grid grid-cols-6 gap-1.5">
                 {availableColors.map(color => (

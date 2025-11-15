@@ -6,16 +6,16 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
     id: '',
     name: '',
     category: '',
-    icon: '',
-    color: '',
+    icon: 'article',
+    color: 'green',
     description: '',
     frequency: '',
     days: [],
     notificaciones: []
   });
 
-  const [selectedIcon, setSelectedIcon] = useState(null);
-  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedIcon, setSelectedIcon] = useState('article');
+  const [selectedColor, setSelectedColor] = useState('green');
   const [selectedDays, setSelectedDays] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
   const [newNotificationTime, setNewNotificationTime] = useState('');
@@ -36,16 +36,16 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
         id: habitData.id || '',
         name: habitData.name || '',
         category: habitData.category || '',
-        icon: habitData.icon || '',
-        color: habitData.color || '',
+        icon: habitData.icon || 'article',
+        color: habitData.color || 'green',
         description: habitData.description || '',
         frequency: habitData.frequency || '',
         days: habitData.days || [],
         notificaciones: habitData.notificaciones || []
       });
       
-      setSelectedIcon(habitData.icon || null);
-      setSelectedColor(habitData.color || null);
+      setSelectedIcon(habitData.icon || 'article');
+      setSelectedColor(habitData.color || 'green');
       setSelectedDays(habitData.days || []);
       setNewNotificationTime('');
     }
@@ -134,15 +134,12 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.icon) {
-      alert('Por favor selecciona un icono');
-      return;
-    }
-    
-    if (!formData.color) {
-      alert('Por favor selecciona un color');
-      return;
-    }
+    // Aplicar valores por defecto si no se seleccionaron
+    const dataToSubmit = {
+      ...formData,
+      icon: formData.icon || 'article',
+      color: formData.color || 'green'
+    };
     
     if (formData.frequency === 'semanal' && selectedDays.length === 0) {
       alert('Por favor selecciona al menos un día de la semana');
@@ -154,7 +151,7 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
       return;
     }
     
-    onSubmit(formData);
+    onSubmit(dataToSubmit);
   };
 
   const handleDelete = () => {
@@ -237,10 +234,9 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
 
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
-                Categoría *
+                Categoría
               </label>
               <select 
-                required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all"
@@ -256,7 +252,7 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
-                Icono *
+                Icono (opcional)
               </label>
               <div className="grid grid-cols-6 gap-1.5">
                 {availableIcons.map(icon => (
@@ -280,7 +276,7 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
 
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
-                Color *
+                Color del icono (opcional)
               </label>
               <div className="grid grid-cols-6 gap-1.5">
                 {availableColors.map(color => (
