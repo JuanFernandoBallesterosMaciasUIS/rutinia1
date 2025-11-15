@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
-import { availableIcons, availableColors, categories, frequencies, daysOfWeek } from '../data/habitsData';
+import { availableIcons, availableColors, frequencies, daysOfWeek } from '../data/habitsData';
+import { getCategorias } from '../services/api';
 
 const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,8 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
   const [selectedDays, setSelectedDays] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
   const [newNotificationTime, setNewNotificationTime] = useState('');
+  const [categorias, setCategorias] = useState([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(false);
 
   // Manejar cierre con animación
   const handleClose = () => {
@@ -30,24 +33,42 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
   };
 
   useEffect(() => {
-    if (isOpen && habitData) {
-      // Los datos ya vienen normalizados desde api.js (mapHabitoToFrontend)
-      setFormData({
-        id: habitData.id || '',
-        name: habitData.name || '',
-        category: habitData.category || '',
-        icon: habitData.icon || 'article',
-        color: habitData.color || 'green',
-        description: habitData.description || '',
-        frequency: habitData.frequency || '',
-        days: habitData.days || [],
-        notificaciones: habitData.notificaciones || []
-      });
-      
-      setSelectedIcon(habitData.icon || 'article');
-      setSelectedColor(habitData.color || 'green');
-      setSelectedDays(habitData.days || []);
-      setNewNotificationTime('');
+    if (isOpen) {
+      // Cargar categorías
+      const loadCategorias = async () => {
+        setLoadingCategorias(true);
+        try {
+          const data = await getCategorias();
+          setCategorias(data);
+        } catch (error) {
+          console.error('Error al cargar categorías:', error);
+          setCategorias([]);
+        } finally {
+          setLoadingCategorias(false);
+        }
+      };
+      loadCategorias();
+
+      // Cargar datos del hábito
+      if (habitData) {
+        // Los datos ya vienen normalizados desde api.js (mapHabitoToFrontend)
+        setFormData({
+          id: habitData.id || '',
+          name: habitData.name || '',
+          category: habitData.category || '',
+          icon: habitData.icon || 'article',
+          color: habitData.color || 'green',
+          description: habitData.description || '',
+          frequency: habitData.frequency || '',
+          days: habitData.days || [],
+          notificaciones: habitData.notificaciones || []
+        });
+        
+        setSelectedIcon(habitData.icon || 'article');
+        setSelectedColor(habitData.color || 'green');
+        setSelectedDays(habitData.days || []);
+        setNewNotificationTime('');
+      }
     }
   }, [isOpen, habitData]);
 
@@ -239,11 +260,12 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
               <select 
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                disabled={loadingCategorias}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
               >
-                <option value="">Selecciona una categoría</option>
-                {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                <option value="">{loadingCategorias ? 'Cargando...' : 'Selecciona una categoría'}</option>
+                {categorias.map(cat => (
+                  <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>
                 ))}
               </select>
             </div>

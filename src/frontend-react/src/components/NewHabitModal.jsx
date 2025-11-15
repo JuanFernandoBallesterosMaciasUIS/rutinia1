@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { availableIcons, availableColors, categories, frequencies, daysOfWeek } from '../data/habitsData';
+import { availableIcons, availableColors, frequencies, daysOfWeek } from '../data/habitsData';
+import { getCategorias } from '../services/api';
 
 function NewHabitModal({ isOpen, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -18,6 +19,8 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
   const [selectedDays, setSelectedDays] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
   const [newNotificationTime, setNewNotificationTime] = useState('');
+  const [categorias, setCategorias] = useState([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(false);
 
   // Manejar cierre con animación
   const handleClose = () => {
@@ -29,7 +32,22 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
   };
 
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      // Cargar categorías cuando se abre el modal
+      const loadCategorias = async () => {
+        setLoadingCategorias(true);
+        try {
+          const data = await getCategorias();
+          setCategorias(data);
+        } catch (error) {
+          console.error('Error al cargar categorías:', error);
+          setCategorias([]);
+        } finally {
+          setLoadingCategorias(false);
+        }
+      };
+      loadCategorias();
+    } else {
       // Reset form when modal closes
       setFormData({
         name: '',
@@ -233,11 +251,12 @@ function NewHabitModal({ isOpen, onClose, onSubmit }) {
               <select 
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                disabled={loadingCategorias}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
               >
-                <option value="">Selecciona una categoría</option>
-                {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                <option value="">{loadingCategorias ? 'Cargando...' : 'Selecciona una categoría'}</option>
+                {categorias.map(cat => (
+                  <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>
                 ))}
               </select>
             </div>
