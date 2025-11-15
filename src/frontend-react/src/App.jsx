@@ -377,12 +377,12 @@ function App() {
 
       // Verificar notificaciones para hábitos de hoy
       verificarNotificacionesHabitos(todayHabits, async (habito) => {
-        console.log('🔔 Notificación activada para:', habito.name);
+        console.log('Notificación activada para:', habito.name);
         
         // Crear el objeto de notificación para el toast
         const notificationData = {
           id: Date.now(),
-          titulo: `⏰ Recordatorio de hábito`,
+          titulo: `Recordatorio de hábito`,
           mensaje: `Es hora de: ${habito.name}`,
           habito: habito,
           fecha_hora: new Date().toISOString(),

@@ -334,7 +334,7 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
           {/* Notificaciones */}
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
             <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-2">
-              🔔 Notificaciones (opcional)
+              Notificaciones (opcional)
             </label>
             <p className="text-xs text-subtext-light dark:text-subtext-dark mb-3">
               Configura recordatorios para este hábito
