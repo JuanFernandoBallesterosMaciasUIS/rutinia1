@@ -1,0 +1,18 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="10" y="12" width="180" height="180" rx="40" fill="black" opacity="0.15"/>
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C659FF"/>
+      <stop offset="100%" stop-color="#3A4BFF"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="180" height="180" rx="40" fill="url(#grad)"/>
+  <text x="100" y="125"
+        font-family="Arial, sans-serif"
+        font-size="90"
+        font-weight="900"
+        fill="white"
+        text-anchor="middle">
+    R
+  </text>
+</svg>
