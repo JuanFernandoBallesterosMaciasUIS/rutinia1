@@ -185,9 +185,9 @@ function Welcome() {
               <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-400 to-pink-500 text-white flex items-center justify-center shadow-md">
                 <span className="material-icons text-2xl">local_fire_department</span>
               </div>
-              <h3 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">Rachas y motivación</h3>
+              <h3 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">Sistema de rachas</h3>
               <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-                Construye rachas consecutivas al completar tus hábitos día tras día. Cada racha te motiva a continuar y muestra tu compromiso. Mantén tu impulso vivo y celebra cada pequeño logro en tu camino hacia una vida más saludable.
+                Construye rachas consecutivas al completar tus hábitos día tras día. Cada racha muestra tu compromiso y constancia. Mantén tu impulso vivo registrando tus hábitos de forma continua.
               </p>
             </div>
           </div>
