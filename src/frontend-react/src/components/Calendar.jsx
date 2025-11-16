@@ -29,11 +29,13 @@ function Calendar({ habitsData, completedHabits }) {
     
     if (habit.frequency === 'semanal') {
       const dayName = dayNamesShort[date.getDay()];
-      return habit.days.includes(dayName);
+      return habit.days && habit.days.includes(dayName);
     }
     
     if (habit.frequency === 'mensual') {
-      return date.getDate() === 1;
+      // Verificar si el día del mes está en los días configurados
+      const dayOfMonth = date.getDate(); // Día del mes (1-31)
+      return habit.days && habit.days.includes(dayOfMonth);
     }
     
     return false;

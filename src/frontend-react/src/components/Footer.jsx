@@ -13,7 +13,7 @@ function Footer({ onAddHabit, currentView, onChangeView }) {
           >
             <span className="material-icons text-xl sm:text-2xl">today</span>
             <span className={`text-xs sm:text-sm ${currentView === 'today' ? 'font-medium' : ''}`}>
-              hoy
+              Hoy
             </span>
           </button>
           <button 
@@ -26,7 +26,7 @@ function Footer({ onAddHabit, currentView, onChangeView }) {
           >
             <span className="material-icons text-xl sm:text-2xl">calendar_today</span>
             <span className={`text-xs sm:text-sm ${currentView === 'calendar' ? 'font-medium' : ''}`}>
-              calendario
+              Calendario
             </span>
           </button>
           <button 
@@ -45,7 +45,7 @@ function Footer({ onAddHabit, currentView, onChangeView }) {
           >
             <span className="material-icons text-xl sm:text-2xl">checklist</span>
             <span className={`text-xs sm:text-sm ${currentView === 'habits' ? 'font-medium' : ''}`}>
-              hábitos
+              Hábitos
             </span>
           </button>
           <button 
@@ -58,7 +58,7 @@ function Footer({ onAddHabit, currentView, onChangeView }) {
           >
             <span className="material-icons text-xl sm:text-2xl">insights</span>
             <span className={`text-xs sm:text-sm ${currentView === 'analytics' ? 'font-medium' : ''}`}>
-              dashboard
+              Dashboard
             </span>
           </button>
         </div>

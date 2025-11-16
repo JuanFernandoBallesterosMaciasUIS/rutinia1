@@ -1,22 +1,27 @@
 ﻿import { useState, useEffect } from 'react';
-import { availableIcons, availableColors, categories, frequencies, daysOfWeek } from '../data/habitsData';
+import { availableIcons, availableColors, frequencies, daysOfWeek } from '../data/habitsData';
+import { getCategorias } from '../services/api';
 
 const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
   const [formData, setFormData] = useState({
     id: '',
     name: '',
     category: '',
-    icon: '',
-    color: '',
+    icon: 'article',
+    color: 'green',
     description: '',
     frequency: '',
-    days: []
+    days: [],
+    notificaciones: []
   });
 
-  const [selectedIcon, setSelectedIcon] = useState(null);
-  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedIcon, setSelectedIcon] = useState('article');
+  const [selectedColor, setSelectedColor] = useState('green');
   const [selectedDays, setSelectedDays] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
+  const [newNotificationTime, setNewNotificationTime] = useState('');
+  const [categorias, setCategorias] = useState([]);
+  const [loadingCategorias, setLoadingCategorias] = useState(false);
 
   // Manejar cierre con animación
   const handleClose = () => {
@@ -28,22 +33,42 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
   };
 
   useEffect(() => {
-    if (isOpen && habitData) {
-      // Los datos ya vienen normalizados desde api.js (mapHabitoToFrontend)
-      setFormData({
-        id: habitData.id || '',
-        name: habitData.name || '',
-        category: habitData.category || '',
-        icon: habitData.icon || '',
-        color: habitData.color || '',
-        description: habitData.description || '',
-        frequency: habitData.frequency || '',
-        days: habitData.days || []
-      });
-      
-      setSelectedIcon(habitData.icon || null);
-      setSelectedColor(habitData.color || null);
-      setSelectedDays(habitData.days || []);
+    if (isOpen) {
+      // Cargar categorías
+      const loadCategorias = async () => {
+        setLoadingCategorias(true);
+        try {
+          const data = await getCategorias();
+          setCategorias(data);
+        } catch (error) {
+          console.error('Error al cargar categorías:', error);
+          setCategorias([]);
+        } finally {
+          setLoadingCategorias(false);
+        }
+      };
+      loadCategorias();
+
+      // Cargar datos del hábito
+      if (habitData) {
+        // Los datos ya vienen normalizados desde api.js (mapHabitoToFrontend)
+        setFormData({
+          id: habitData.id || '',
+          name: habitData.name || '',
+          category: habitData.category || '',
+          icon: habitData.icon || 'article',
+          color: habitData.color || 'green',
+          description: habitData.description || '',
+          frequency: habitData.frequency || '',
+          days: habitData.days || [],
+          notificaciones: habitData.notificaciones || []
+        });
+        
+        setSelectedIcon(habitData.icon || 'article');
+        setSelectedColor(habitData.color || 'green');
+        setSelectedDays(habitData.days || []);
+        setNewNotificationTime('');
+      }
     }
   }, [isOpen, habitData]);
 
@@ -65,25 +90,89 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
     setFormData({ ...formData, days: newDays });
   };
 
+  // Manejar cambio de frecuencia (limpiar días cuando cambia)
+  const handleFrequencyChange = (newFrequency) => {
+    // Si la frecuencia cambia, limpiar los días seleccionados
+    setSelectedDays([]);
+    setFormData({ 
+      ...formData, 
+      frequency: newFrequency,
+      days: [] // Limpiar días al cambiar frecuencia
+    });
+  };
+
+  // Agregar notificación
+  const handleAddNotification = () => {
+    if (!newNotificationTime) {
+      alert('Por favor ingresa una hora para la notificación');
+      return;
+    }
+
+    // Validar formato HH:MM
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(newNotificationTime)) {
+      alert('Por favor ingresa una hora válida en formato HH:MM (ej: 08:00, 14:30)');
+      return;
+    }
+
+    // Verificar que no exista ya
+    const exists = formData.notificaciones.some(n => n.hora === newNotificationTime);
+    if (exists) {
+      alert('Ya existe una notificación para esta hora');
+      return;
+    }
+
+    const newNotification = {
+      hora: newNotificationTime,
+      activa: true
+    };
+
+    setFormData({
+      ...formData,
+      notificaciones: [...formData.notificaciones, newNotification]
+    });
+    setNewNotificationTime('');
+  };
+
+  // Eliminar notificación
+  const handleRemoveNotification = (hora) => {
+    setFormData({
+      ...formData,
+      notificaciones: formData.notificaciones.filter(n => n.hora !== hora)
+    });
+  };
+
+  // Toggle activar/desactivar notificación
+  const handleToggleNotification = (hora) => {
+    setFormData({
+      ...formData,
+      notificaciones: formData.notificaciones.map(n =>
+        n.hora === hora ? { ...n, activa: !n.activa } : n
+      )
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.icon) {
-      alert('Por favor selecciona un icono');
-      return;
-    }
-    
-    if (!formData.color) {
-      alert('Por favor selecciona un color');
-      return;
-    }
+    // Aplicar valores por defecto si no se seleccionaron
+    const dataToSubmit = {
+      ...formData,
+      icon: formData.icon || 'article',
+      color: formData.color || 'green'
+    };
     
     if (formData.frequency === 'semanal' && selectedDays.length === 0) {
       alert('Por favor selecciona al menos un día de la semana');
       return;
     }
     
-    onSubmit(formData);
+    if (formData.frequency === 'mensual' && selectedDays.length === 0) {
+      alert('Por favor selecciona al menos un día del mes');
+      return;
+    }
+    
+    onSubmit(dataToSubmit);
   };
 
   const handleDelete = () => {
@@ -166,17 +255,17 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
 
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
-                Categoría *
+                Categoría
               </label>
               <select 
-                required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                disabled={loadingCategorias}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
               >
-                <option value="">Selecciona una categoría</option>
-                {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                <option value="">{loadingCategorias ? 'Cargando...' : 'Selecciona una categoría'}</option>
+                {categorias.map(cat => (
+                  <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>
                 ))}
               </select>
             </div>
@@ -185,7 +274,7 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
-                Icono *
+                Icono (opcional)
               </label>
               <div className="grid grid-cols-6 gap-1.5">
                 {availableIcons.map(icon => (
@@ -209,7 +298,7 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
 
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
-                Color *
+                Color del icono (opcional)
               </label>
               <div className="grid grid-cols-6 gap-1.5">
                 {availableColors.map(color => (
@@ -236,7 +325,7 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
               <select 
                 required
                 value={formData.frequency}
-                onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                onChange={(e) => handleFrequencyChange(e.target.value)}
                 className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               >
                 <option value="">Selecciona la frecuencia</option>
@@ -260,6 +349,85 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
             </div>
           </div>
 
+          {/* Notificaciones */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-2">
+              Notificaciones (opcional)
+            </label>
+            <p className="text-xs text-subtext-light dark:text-subtext-dark mb-3">
+              Configura recordatorios para este hábito
+            </p>
+
+            {/* Input para agregar nueva notificación */}
+            <div className="flex gap-2 mb-3">
+              <div className="flex-1">
+                <input
+                  type="time"
+                  value={newNotificationTime}
+                  onChange={(e) => setNewNotificationTime(e.target.value)}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                  placeholder="HH:MM"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAddNotification}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-all flex items-center gap-1"
+              >
+                <span className="material-icons text-sm">add</span>
+                Agregar
+              </button>
+            </div>
+
+            {/* Lista de notificaciones configuradas */}
+            {formData.notificaciones.length > 0 && (
+              <div className="space-y-2">
+                {formData.notificaciones.map((notif) => (
+                  <div
+                    key={notif.hora}
+                    className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleToggleNotification(notif.hora)}
+                      className={`p-1 rounded transition-all ${
+                        notif.activa
+                          ? 'text-green-500 hover:bg-green-100 dark:hover:bg-green-900/20'
+                          : 'text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                      title={notif.activa ? 'Desactivar' : 'Activar'}
+                    >
+                      <span className="material-icons text-lg">
+                        {notif.activa ? 'notifications_active' : 'notifications_off'}
+                      </span>
+                    </button>
+                    <span className={`flex-1 text-sm font-medium ${
+                      notif.activa
+                        ? 'text-text-light dark:text-text-dark'
+                        : 'text-gray-400 line-through'
+                    }`}>
+                      {notif.hora}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNotification(notif.hora)}
+                      className="p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-all"
+                      title="Eliminar"
+                    >
+                      <span className="material-icons text-lg">delete</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {formData.notificaciones.length === 0 && (
+              <div className="text-center py-4 text-xs text-subtext-light dark:text-subtext-dark">
+                No hay notificaciones configuradas
+              </div>
+            )}
+          </div>
+
           {formData.frequency === 'semanal' && (
             <div>
               <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
@@ -278,6 +446,30 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
                     }`}
                   >
                     <span className="text-[10px] sm:text-xs font-semibold">{day.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {formData.frequency === 'mensual' && (
+            <div>
+              <label className="block text-xs sm:text-sm font-semibold text-text-light dark:text-text-dark mb-1">
+                Días del mes * <span className="text-xs font-normal text-subtext-light dark:text-subtext-dark">(Selecciona los días en que quieres realizar este hábito)</span>
+              </label>
+              <div className="grid grid-cols-7 gap-1.5">
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                  <button 
+                    key={day}
+                    type="button"
+                    onClick={() => handleDayToggle(day)}
+                    className={`px-1 py-2 rounded-lg border-2 hover:border-primary transition-all text-center ${
+                      selectedDays.includes(day)
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  >
+                    <span className="text-[10px] sm:text-xs font-semibold">{day}</span>
                   </button>
                 ))}
               </div>

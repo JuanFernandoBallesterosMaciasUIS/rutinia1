@@ -1,14 +1,8 @@
-// Configuración de la API
-const API_BASE_URL = 'http://localhost:8000/api';
+import { apiClient } from './authService';
+import { getLocalDateString } from './dateHelpers';
 
-// Helper para manejar respuestas
-const handleResponse = async (response) => {
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || 'Error en la petición');
-  }
-  return response.json();
-};
+// Configuración de la API
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // ==================== AUTENTICACIÓN Y USUARIOS ====================
 
@@ -18,11 +12,9 @@ const handleResponse = async (response) => {
  * @returns {Promise<Object>} Usuario autenticado
  */
 export const loginUsuario = async (credentials) => {
-  const response = await fetch(`${API_BASE_URL}/usuarios/`, {
-    method: 'GET',
-  });
+  const response = await apiClient.get('/usuarios/');
   
-  const usuarios = await handleResponse(response);
+  const usuarios = response.data;
   
   // Buscar usuario por correo y clave (temporal, hasta implementar auth real)
   const usuario = usuarios.find(
@@ -42,17 +34,11 @@ export const loginUsuario = async (credentials) => {
  * @returns {Promise<Object>} Usuario creado
  */
 export const registrarUsuario = async (userData) => {
-  const response = await fetch(`${API_BASE_URL}/usuarios/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      ...userData,
-      tema: userData.tema || 'light'
-    }),
+  const response = await apiClient.post('/usuarios/', {
+    ...userData,
+    tema: userData.tema || 'light'
   });
-  return handleResponse(response);
+  return response.data;
 };
 
 /**
@@ -61,8 +47,8 @@ export const registrarUsuario = async (userData) => {
  * @returns {Promise<Object>} Usuario
  */
 export const getUsuario = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/usuarios/${id}/`);
-  return handleResponse(response);
+  const response = await apiClient.get(`/usuarios/${id}/`);
+  return response.data;
 };
 
 /**
@@ -72,14 +58,8 @@ export const getUsuario = async (id) => {
  * @returns {Promise<Object>} Usuario actualizado
  */
 export const updateUsuario = async (id, userData) => {
-  const response = await fetch(`${API_BASE_URL}/usuarios/${id}/`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
-  return handleResponse(response);
+  const response = await apiClient.patch(`/usuarios/${id}/`, userData);
+  return response.data;
 };
 
 // ==================== HÁBITOS ====================
@@ -96,16 +76,14 @@ export const updateUsuario = async (id, userData) => {
 export const getHabitos = async (options = {}) => {
   const { usuarioId, page, pageSize, ordering } = options;
   
-  const params = new URLSearchParams();
-  if (usuarioId) params.append('usuario', usuarioId);
-  if (page) params.append('page', page);
-  if (pageSize) params.append('page_size', pageSize);
-  if (ordering) params.append('ordering', ordering);
+  const params = {};
+  if (usuarioId) params.usuario = usuarioId;
+  if (page) params.page = page;
+  if (pageSize) params.page_size = pageSize;
+  if (ordering) params.ordering = ordering;
   
-  const url = `${API_BASE_URL}/habitos/${params.toString() ? '?' + params.toString() : ''}`;
-  
-  const response = await fetch(url);
-  return handleResponse(response);
+  const response = await apiClient.get('/habitos/', { params });
+  return response.data;
 };
 
 /**
@@ -114,8 +92,8 @@ export const getHabitos = async (options = {}) => {
  * @returns {Promise<Object>} Hábito
  */
 export const getHabito = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/habitos/${id}/`);
-  return handleResponse(response);
+  const response = await apiClient.get(`/habitos/${id}/`);
+  return response.data;
 };
 
 /**
@@ -125,20 +103,13 @@ export const getHabito = async (id) => {
  */
 export const createHabito = async (habitoData) => {
   console.log('📤 Enviando al backend:', JSON.stringify(habitoData, null, 2));
-  const response = await fetch(`${API_BASE_URL}/habitos/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(habitoData),
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    console.error('❌ Error del backend:', errorData);
+  try {
+    const response = await apiClient.post('/habitos/', habitoData);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error del backend:', error.response?.data || error.message);
+    throw error;
   }
-  
-  return handleResponse(response);
 };
 
 /**
@@ -151,20 +122,13 @@ export const updateHabito = async (id, habitoData) => {
   console.log('📝 Actualizando hábito:', id);
   console.log('📤 Datos a enviar:', JSON.stringify(habitoData, null, 2));
   
-  const response = await fetch(`${API_BASE_URL}/habitos/${id}/`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(habitoData),
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    console.error('❌ Error al actualizar:', errorData);
+  try {
+    const response = await apiClient.patch(`/habitos/${id}/`, habitoData);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error al actualizar:', error.response?.data || error.message);
+    throw error;
   }
-  
-  return handleResponse(response);
 };
 
 /**
@@ -173,13 +137,7 @@ export const updateHabito = async (id, habitoData) => {
  * @returns {Promise<void>}
  */
 export const deleteHabito = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/habitos/${id}/`, {
-    method: 'DELETE',
-  });
-  
-  if (!response.ok) {
-    throw new Error('Error al eliminar el hábito');
-  }
+  await apiClient.delete(`/habitos/${id}/`);
 };
 
 // ==================== PROGRESO DE HÁBITOS ====================
@@ -190,8 +148,8 @@ export const deleteHabito = async (id) => {
  * @returns {Promise<Object>} Progreso semanal
  */
 export const getProgresoSemanal = async (habitoId) => {
-  const response = await fetch(`${API_BASE_URL}/habitos/${habitoId}/progreso_semanal/`);
-  return handleResponse(response);
+  const response = await apiClient.get(`/habitos/${habitoId}/progreso_semanal/`);
+  return response.data;
 };
 
 /**
@@ -200,8 +158,8 @@ export const getProgresoSemanal = async (habitoId) => {
  * @returns {Promise<Object>} Progreso mensual
  */
 export const getProgresoMensual = async (habitoId) => {
-  const response = await fetch(`${API_BASE_URL}/habitos/${habitoId}/progreso_mensual/`);
-  return handleResponse(response);
+  const response = await apiClient.get(`/habitos/${habitoId}/progreso_mensual/`);
+  return response.data;
 };
 
 /**
@@ -240,12 +198,9 @@ export const getProgresosMultiples = async (habitoIds) => {
  * @returns {Promise<Array>} Lista de registros
  */
 export const getRegistros = async (habitoId = null) => {
-  const url = habitoId
-    ? `${API_BASE_URL}/registros/?habito=${habitoId}`
-    : `${API_BASE_URL}/registros/`;
-  
-  const response = await fetch(url);
-  return handleResponse(response);
+  const params = habitoId ? { habito: habitoId } : {};
+  const response = await apiClient.get('/registros/', { params });
+  return response.data;
 };
 
 /**
@@ -257,18 +212,12 @@ export const getRegistros = async (habitoId = null) => {
  * @returns {Promise<Object>} Registro creado/actualizado
  */
 export const toggleHabitoCompletado = async (habitoId, fecha, completado = true) => {
-  const response = await fetch(`${API_BASE_URL}/registros/toggle_completado/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      habito_id: habitoId,
-      fecha: fecha,
-      completado: completado
-    }),
+  const response = await apiClient.post('/registros/toggle_completado/', {
+    habito_id: habitoId,
+    fecha: fecha,
+    completado: completado
   });
-  return handleResponse(response);
+  return response.data;
 };
 
 /**
@@ -277,14 +226,8 @@ export const toggleHabitoCompletado = async (habitoId, fecha, completado = true)
  * @returns {Promise<Object>} Registro creado
  */
 export const createRegistro = async (registroData) => {
-  const response = await fetch(`${API_BASE_URL}/registros/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(registroData),
-  });
-  return handleResponse(response);
+  const response = await apiClient.post('/registros/', registroData);
+  return response.data;
 };
 
 /**
@@ -294,14 +237,8 @@ export const createRegistro = async (registroData) => {
  * @returns {Promise<Object>} Registro actualizado
  */
 export const updateRegistro = async (id, registroData) => {
-  const response = await fetch(`${API_BASE_URL}/registros/${id}/`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(registroData),
-  });
-  return handleResponse(response);
+  const response = await apiClient.patch(`/registros/${id}/`, registroData);
+  return response.data;
 };
 
 /**
@@ -310,13 +247,7 @@ export const updateRegistro = async (id, registroData) => {
  * @returns {Promise<void>}
  */
 export const deleteRegistro = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/registros/${id}/`, {
-    method: 'DELETE',
-  });
-  
-  if (!response.ok) {
-    throw new Error('Error al eliminar el registro');
-  }
+  await apiClient.delete(`/registros/${id}/`);
 };
 
 // ==================== CATEGORÍAS ====================
@@ -326,8 +257,8 @@ export const deleteRegistro = async (id) => {
  * @returns {Promise<Array>} Lista de categorías
  */
 export const getCategorias = async () => {
-  const response = await fetch(`${API_BASE_URL}/categorias/`);
-  return handleResponse(response);
+  const response = await apiClient.get('/categorias/');
+  return response.data;
 };
 
 /**
@@ -336,14 +267,8 @@ export const getCategorias = async () => {
  * @returns {Promise<Object>} Categoría creada
  */
 export const createCategoria = async (categoriaData) => {
-  const response = await fetch(`${API_BASE_URL}/categorias/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(categoriaData),
-  });
-  return handleResponse(response);
+  const response = await apiClient.post('/categorias/', categoriaData);
+  return response.data;
 };
 
 // ==================== HELPERS ====================
@@ -366,12 +291,14 @@ export const mapHabitoToBackend = (frontendHabito, usuarioId = '507f1f77bcf86cd7
     usuario: usuarioId,
     nombre: frontendHabito.name,
     dificultad: 'media',
-    fecha_inicio: new Date().toISOString().split('T')[0],
+    fecha_inicio: getLocalDateString(), // Usar fecha local
     tipo_frecuencia: tipo_frecuencia,
-    dias: frecuencia === 'semanal' ? (frontendHabito.days || []) : [],
+    // ✨ DÍAS: incluir para frecuencia semanal (strings) y mensual (números)
+    dias: (frecuencia === 'semanal' || frecuencia === 'mensual') ? (frontendHabito.days || []) : [],
     publico: false,
     activo: true,
-    notificaciones: [],
+    // ✨ NOTIFICACIONES: incluir las notificaciones del hábito
+    notificaciones: frontendHabito.notificaciones || [],
     // ✨ NUEVOS CAMPOS: icono y color
     icono: frontendHabito.icon || 'fitness_center',
     color: frontendHabito.color || 'blue'
@@ -382,8 +309,8 @@ export const mapHabitoToBackend = (frontendHabito, usuarioId = '507f1f77bcf86cd7
     data.descripcion = frontendHabito.description;
   }
   
-  // Solo agregar categoría si existe Y es un ObjectId válido (24 caracteres hex)
-  if (frontendHabito.category && frontendHabito.category.length === 24) {
+  // Agregar categoría si existe (enviar el nombre, el backend se encarga de buscar/crear)
+  if (frontendHabito.category && frontendHabito.category.trim() !== '') {
     data.categoria = frontendHabito.category;
   }
   
@@ -406,33 +333,17 @@ export const mapHabitoToFrontend = (backendHabito) => {
     return lower;
   };
 
-  // Normalizar categoría: Extraer nombre si es objeto, convertir a lowercase con guiones
-  const normalizeCategory = (cat) => {
-    console.log('🔍 Categoría del backend:', cat);
-    console.log('🔍 Tipo de categoría:', typeof cat);
-    
-    if (!cat) return '';
-    
-    // Si es un objeto con nombre, usar el nombre
-    const categoryName = typeof cat === 'object' ? cat.nombre : cat;
-    if (!categoryName) return '';
-    
-    // Convertir a lowercase y reemplazar espacios con guiones
-    const normalized = categoryName.toLowerCase().replace(/\s+/g, '-');
-    console.log('✅ Categoría normalizada:', normalized);
-    return normalized;
-  };
-
   return {
     id: backendHabito.id,
     name: backendHabito.nombre,
-    category: normalizeCategory(backendHabito.categoria),
+    category: backendHabito.categoria || '',
     // ✨ Ahora icon y color vienen del backend
     icon: backendHabito.icono || 'fitness_center',
     color: backendHabito.color || 'blue',
     description: backendHabito.descripcion || '',
     frequency: normalizeFrequency(backendHabito.tipo_frecuencia),
     days: backendHabito.dias || [],
+    notificaciones: backendHabito.notificaciones || [],
     // Campos adicionales del backend
     dificultad: backendHabito.dificultad,
     fecha_inicio: backendHabito.fecha_inicio,

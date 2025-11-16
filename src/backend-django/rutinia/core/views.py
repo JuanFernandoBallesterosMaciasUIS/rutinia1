@@ -4,6 +4,9 @@ from django.shortcuts import render
 from datetime import datetime, timedelta, date
 import calendar
 
+# MongoDB ObjectId
+from bson import ObjectId
+
 # Create your views here.
 #from rest_framework import viewsets, status
 from rest_framework_mongoengine import viewsets
@@ -12,8 +15,9 @@ from rest_framework import status
 #Librerias rest
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import Usuario, Habito, RegistroHabito, Rol, Categoria, Notificacion, Tool
-from .serializers import UsuarioSerializer, RolSerializer, HabitoSerializer, CategoriaSerializer, RegistroHabitoSerializer, ToolSerializer, NotificacionSerializer
+from rest_framework.permissions import IsAuthenticated
+from .models import Usuario, Habito, RegistroHabito, Rol, Categoria, Notificacion, HistorialNotificacion, Tool
+from .serializers import UsuarioSerializer, RolSerializer, HabitoSerializer, CategoriaSerializer, RegistroHabitoSerializer, ToolSerializer, NotificacionSerializer, HistorialNotificacionSerializer
 
 from .pagination import HabitoPagination
 
@@ -21,10 +25,12 @@ from .pagination import HabitoPagination
 class RolViewSet(viewsets.ModelViewSet):
     queryset = Rol.objects.all()
     serializer_class = RolSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     serializer_class = UsuarioSerializer
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         queryset = Usuario.objects.all()
@@ -66,19 +72,25 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
+    permission_classes = [IsAuthenticated]
 
 class RegistroHabitoViewSet(viewsets.ModelViewSet):
     #queryset = RegistroHabito.objects.all()
     serializer_class = RegistroHabitoSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = RegistroHabito.objects.all()
-
         id_habito = self.request.query_params.get('habito')
 
         if id_habito:
-            queryset = queryset.filter(habito=id_habito)
-
+            try:
+                # Convertir string a ObjectId para MongoEngine
+                habito_obj = Habito.objects.get(id=ObjectId(id_habito))
+                queryset = queryset.filter(habito=habito_obj)
+            except (Habito.DoesNotExist, Exception):
+                # Si el hábito no existe o el ID es inválido, devolver queryset vacío
+                return RegistroHabito.objects.none()
         
         return queryset
     
@@ -94,8 +106,6 @@ class RegistroHabitoViewSet(viewsets.ModelViewSet):
             "completado": true/false
         }
         """
-        from bson import ObjectId
-        
         habito_id = request.data.get('habito_id')
         fecha_str = request.data.get('fecha')
         completado = request.data.get('completado', True)
@@ -166,6 +176,7 @@ class RegistroHabitoViewSet(viewsets.ModelViewSet):
 
 class HabitoViewSet(viewsets.ModelViewSet):
     serializer_class = HabitoSerializer
+    permission_classes = [IsAuthenticated]
     #pagination_class = HabitoPagination
 
     def get_queryset(self):
@@ -183,9 +194,21 @@ class HabitoViewSet(viewsets.ModelViewSet):
         #noticaciones = self.request.query_params.get('notificaciones')
         
         if usuario:
-            queryset = queryset.filter(usuario=usuario)
+            try:
+                # Convertir string a ObjectId para MongoEngine
+                usuario_obj = Usuario.objects.get(id=ObjectId(usuario))
+                queryset = queryset.filter(usuario=usuario_obj)
+            except (Usuario.DoesNotExist, Exception):
+                # Si el usuario no existe o el ID es inválido, devolver queryset vacío
+                return Habito.objects.none()
+        
         if categoria:
-            queryset = queryset.filter(categoria=categoria)
+            try:
+                # Convertir string a ObjectId para MongoEngine
+                categoria_obj = Categoria.objects.get(id=ObjectId(categoria))
+                queryset = queryset.filter(categoria=categoria_obj)
+            except (Categoria.DoesNotExist, Exception):
+                pass
         if dificultad:
             queryset = queryset.filter(dificultad__icontains=dificultad)
         if publico is not None:
@@ -227,13 +250,27 @@ class HabitoViewSet(viewsets.ModelViewSet):
             fecha__gte=inicio_semana,
             fecha__lte=fin_semana
         )
-        #TODO:Implementar logica si el habito es mensual
-        #total = registros.count()
+        # Calcular total según la frecuencia del hábito
         if(str.capitalize(habito.tipo_frecuencia) == "Diario"):
             total = 7
 
         elif(str.capitalize(habito.tipo_frecuencia) == "Semanal"):
             total = len(habito.dias)
+        
+        elif(str.capitalize(habito.tipo_frecuencia) == "Mensual"):
+            # Para hábitos mensuales: contar cuántos días configurados caen en la semana actual
+            if habito.dias and len(habito.dias) > 0:
+                total = 0
+                # Recorrer cada día de la semana
+                current_day = inicio_semana
+                while current_day <= fin_semana:
+                    dia_del_mes = current_day.day
+                    # Verificar si este día del mes está configurado en el hábito
+                    if dia_del_mes in habito.dias:
+                        total += 1
+                    current_day += timedelta(days=1)
+            else:
+                total = 0  # No hay días configurados
         
         else:
             total = 0
@@ -269,7 +306,7 @@ class HabitoViewSet(viewsets.ModelViewSet):
             fecha__lte=fin_mes
         )
 
-        #TODO:implementar logica de progreso si el habito es mensual
+        # Calcular total según la frecuencia del hábito
         if(str.capitalize(habito.tipo_frecuencia) == "Diario"):
             total = ultimo_dia
 
@@ -277,7 +314,13 @@ class HabitoViewSet(viewsets.ModelViewSet):
             total = len(habito.dias) * len(semanas_mes)
         
         elif(str.capitalize(habito.tipo_frecuencia) == "Mensual"):
-            total = 1
+            # Para hábitos mensuales: contar cuántos días configurados hay en el mes
+            if habito.dias and len(habito.dias) > 0:
+                # Filtrar días que sean válidos para el mes actual
+                dias_validos = [dia for dia in habito.dias if isinstance(dia, int) and 1 <= dia <= ultimo_dia]
+                total = len(dias_validos)
+            else:
+                total = 1  # Fallback si no hay días configurados
         
         else: 
             total = 0
@@ -326,6 +369,139 @@ class ToolViewSet(viewsets.ModelViewSet):
     '''
     lookup_field = 'id'
     serializer_class = ToolSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Tool.objects.all()
+
+
+class HistorialNotificacionViewSet(viewsets.ModelViewSet):
+    '''
+    ViewSet para gestionar el historial de notificaciones de los usuarios.
+    '''
+    lookup_field = 'id'
+    serializer_class = HistorialNotificacionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Filtrar notificaciones por usuario si se proporciona el parámetro"""
+        queryset = HistorialNotificacion.objects.all()
+        usuario_id = self.request.query_params.get('usuario', None)
+        
+        if usuario_id:
+            try:
+                queryset = queryset.filter(usuario=ObjectId(usuario_id))
+            except:
+                pass
+        
+        # Ordenar por fecha_hora descendente (más recientes primero)
+        return queryset.order_by('-fecha_hora')
+    
+    @action(detail=False, methods=['get'])
+    def no_leidas(self, request):
+        """Obtener notificaciones no leídas del usuario"""
+        usuario_id = request.query_params.get('usuario', None)
+        
+        if not usuario_id:
+            return Response(
+                {"error": "Se requiere el parámetro 'usuario'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            notificaciones = HistorialNotificacion.objects(
+                usuario=ObjectId(usuario_id),
+                leida=False
+            ).order_by('-fecha_hora')
+            
+            serializer = self.get_serializer(notificaciones, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=True, methods=['post'])
+    def marcar_leida(self, request, id=None):
+        """Marcar una notificación como leída"""
+        try:
+            notificacion = self.get_object()
+            notificacion.leida = True
+            notificacion.fecha_lectura = datetime.now()
+            notificacion.save()
+            
+            serializer = self.get_serializer(notificacion)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def marcar_todas_leidas(self, request):
+        """Marcar todas las notificaciones de un usuario como leídas"""
+        usuario_id = request.data.get('usuario', None)
+        
+        if not usuario_id:
+            return Response(
+                {"error": "Se requiere el campo 'usuario'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            notificaciones = HistorialNotificacion.objects(
+                usuario=ObjectId(usuario_id),
+                leida=False
+            )
+            
+            count = 0
+            for notif in notificaciones:
+                notif.leida = True
+                notif.fecha_lectura = datetime.now()
+                notif.save()
+                count += 1
+            
+            return Response({
+                "mensaje": f"{count} notificaciones marcadas como leídas",
+                "total": count
+            })
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def crear_notificacion(self, request):
+        """Crear una nueva notificación (usado por el sistema de recordatorios)"""
+        try:
+            usuario_id = request.data.get('usuario')
+            habito_id = request.data.get('habito')
+            titulo = request.data.get('titulo')
+            mensaje = request.data.get('mensaje')
+            
+            if not all([usuario_id, habito_id, titulo, mensaje]):
+                return Response(
+                    {"error": "Faltan campos requeridos"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            notificacion = HistorialNotificacion(
+                usuario=ObjectId(usuario_id),
+                habito=ObjectId(habito_id),
+                titulo=titulo,
+                mensaje=mensaje,
+                fecha_hora=datetime.now(),
+                leida=False
+            )
+            notificacion.save()
+            
+            serializer = self.get_serializer(notificacion)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
