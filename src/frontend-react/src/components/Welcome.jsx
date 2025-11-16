@@ -193,7 +193,13 @@ function Welcome() {
           </div>
 
           {/* Footer */}
-          <footer className="mt-12 text-center">
+          <footer className="mt-12 text-center space-y-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Aplicación desarrollada por estudiantes de séptimo semestre de Ingeniería de Sistemas UIS
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Asignatura: Ingeniería de Software
+            </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">© 2025 Rutinia — Versión Beta</p>
           </footer>
         </div>
