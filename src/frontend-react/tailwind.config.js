@@ -32,7 +32,20 @@ export default {
         'lg': '1024px', // Grande
         'xl': '1280px', // Extra grande
         '2xl': '1536px' // 2x Grande
-      }
+      },
+      animation: {
+        'gradient': 'gradient 8s linear infinite',
+      },
+      keyframes: {
+        gradient: {
+          '0%, 100%': {
+            'background-position': '0% 50%'
+          },
+          '50%': {
+            'background-position': '100% 50%'
+          },
+        },
+      },
     },
   },
   plugins: [],
