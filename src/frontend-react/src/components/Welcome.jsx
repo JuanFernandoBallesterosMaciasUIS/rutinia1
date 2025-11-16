@@ -194,7 +194,7 @@ function Welcome() {
 
           {/* Footer */}
           <footer className="mt-12 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">© 2024 Rutinia — Versión Beta</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">© 2025 Rutinia — Versión Beta</p>
           </footer>
         </div>
       </section>
