@@ -39,10 +39,10 @@ class Notificacion(EmbeddedDocument):
 class Habito(Document):
     usuario = fields.ReferenceField(Usuario, reverse_delete_rule=CASCADE)
     categoria = fields.ReferenceField(Categoria, reverse_delete_rule=NULLIFY)
-    nombre = fields.StringField(max_length=50)
-    descripcion = fields.StringField(max_length=100)
+    nombre = fields.StringField(max_length=50, required=True)
+    descripcion = fields.StringField(max_length=100,required=True)
     dificultad = fields.StringField(max_length=50)
-    fecha_inicio = fields.DateField()
+    fecha_inicio = fields.DateField(required=True)
     tipo_frecuencia = fields.StringField(max_length=50)
     dias = fields.ListField(fields.StringField(), required=False)
     publico = fields.BooleanField(default=False)
@@ -50,11 +50,15 @@ class Habito(Document):
     notificaciones = fields.EmbeddedDocumentListField(Notificacion)
     icono = fields.StringField(max_length=50)
     color = fields.StringField(max_length=20)
+    
+    def clean(self):
+        if not self.nombre.strip():
+            raise ValueError("El nombre del hábito no puede estar vacío.")
 
 
 # --- Registro de Hábito ---
 class RegistroHabito(Document):
-    habito = fields.ReferenceField(Habito, reverse_delete_rule=CASCADE)
+    habito = fields.ReferenceField(Habito, reverse_delete_rule=CASCADE, required=True)
     fecha = fields.DateField()
     estado = fields.BooleanField()
 
