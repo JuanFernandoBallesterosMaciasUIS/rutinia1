@@ -92,14 +92,9 @@ const NotificationToast = ({ notification, onClose, onMarkAsRead, duration = 800
 
             {/* Texto */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="material-icons text-primary text-sm animate-pulse">
-                  notifications_active
-                </span>
-                <h4 className="font-bold text-text-light dark:text-text-dark text-sm">
-                  {notification.titulo}
-                </h4>
-              </div>
+              <h4 className="font-bold text-text-light dark:text-text-dark text-sm mb-1">
+                {notification.titulo}
+              </h4>
               <p className="text-subtext-light dark:text-subtext-dark text-sm mb-3">
                 {notification.mensaje}
               </p>

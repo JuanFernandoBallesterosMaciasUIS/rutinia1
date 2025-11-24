@@ -89,17 +89,7 @@ const NotificationsView = ({ usuario }) => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-text-light dark:text-text-dark mb-2">
-          Notificaciones
-        </h1>
-        <p className="text-subtext-light dark:text-subtext-dark">
-          Revisa tus recordatorios de hábitos
-        </p>
-      </div>
-
+    <div className="max-w-4xl mx-auto">
       {/* Filtros y acciones */}
       <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm p-4 mb-6">
         <div className="flex flex-wrap items-center justify-between gap-4">

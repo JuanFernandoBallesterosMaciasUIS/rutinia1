@@ -15,6 +15,7 @@ import EditProfile from './components/EditProfile';
 import NotificationsView from './components/NotificationsView';
 import NotificationBell from './components/NotificationBell';
 import { NotificationToastContainer } from './components/NotificationToast';
+import ConfirmDialog from './components/ConfirmDialog';
 import { habitsData as initialHabitsData } from './data/habitsData';
 import * as api from './services/api';
 import { getTodayString, getLocalDateString } from './services/dateHelpers';
@@ -172,6 +173,8 @@ function App() {
   const [showNewHabitModal, setShowNewHabitModal] = useState(false);
   const [showEditHabitModal, setShowEditHabitModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [habitToDelete, setHabitToDelete] = useState(null);
   const [currentEditHabit, setCurrentEditHabit] = useState(null);
   const [habitsData, setHabitsData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -748,25 +751,33 @@ function App() {
   };
 
   // Manejar eliminación de hábito
-  const handleDeleteHabit = async (habitId) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este hábito?')) {
-      try {
-        // Eliminar del backend
-        await api.deleteHabito(habitId);
-        
-        // ✨ YA NO necesitamos eliminar de localStorage (icon y color están en backend)
-        
-        // Actualizar estado local
-        const updatedHabits = habitsData.filter(habit => habit.id !== habitId);
-        setHabitsData(updatedHabits);
-        
-        setShowEditHabitModal(false);
-        setCurrentEditHabit(null);
-        showSuccessMessage('Hábito eliminado exitosamente');
-      } catch (error) {
-        console.error('Error al eliminar hábito:', error);
-        showErrorMessage('Error al eliminar el hábito. Intenta de nuevo.');
-      }
+  const handleDeleteHabit = (habitId) => {
+    const habit = habitsData.find(h => h.id === habitId);
+    setHabitToDelete(habit);
+    setShowConfirmDialog(true);
+  };
+
+  // Confirmar eliminación de hábito
+  const confirmDeleteHabit = async () => {
+    if (!habitToDelete) return;
+    
+    try {
+      // Eliminar del backend
+      await api.deleteHabito(habitToDelete.id);
+      
+      // ✨ YA NO necesitamos eliminar de localStorage (icon y color están en backend)
+      
+      // Actualizar estado local
+      const updatedHabits = habitsData.filter(habit => habit.id !== habitToDelete.id);
+      setHabitsData(updatedHabits);
+      
+      setShowEditHabitModal(false);
+      setCurrentEditHabit(null);
+      setHabitToDelete(null);
+      showSuccessMessage('Hábito eliminado exitosamente');
+    } catch (error) {
+      console.error('Error al eliminar hábito:', error);
+      showErrorMessage('Error al eliminar el hábito. Intenta de nuevo.');
     }
   };
 
@@ -862,8 +873,20 @@ function App() {
         onUpdateSuccess={handleUpdateProfile}
       />
 
+      {/* Diálogo de confirmación para eliminar hábito */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        onClose={() => {
+          setShowConfirmDialog(false);
+          setHabitToDelete(null);
+        }}
+        onConfirm={confirmDeleteHabit}
+        title="¿Eliminar hábito?"
+        message={habitToDelete ? `¿Estás seguro de que deseas eliminar "${habitToDelete.name}"? Esta acción no se puede deshacer.` : ''}
+      />
+
       {/* Main Content */}
-      <div className="lg:ml-64 transition-all duration-300 ease-in-out min-h-screen">
+      <div className="lg:ml-72 transition-all duration-300 ease-in-out min-h-screen">
         {/* Header fijo con título de sección */}
         <header className="sticky top-0 z-20 bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">

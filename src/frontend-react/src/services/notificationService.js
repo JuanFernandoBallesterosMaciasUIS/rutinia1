@@ -167,7 +167,7 @@ export const mostrarNotificacion = (habito, onNotificacion) => {
   // Mostrar notificación del navegador si está permitido
   if ('Notification' in window && Notification.permission === 'granted') {
     try {
-      new Notification(`⏰ Recordatorio: ${habito.name}`, {
+      new Notification(`Recordatorio de hábito`, {
         body: `Es hora de completar tu hábito: ${habito.name}`,
         icon: '/vite.svg',
         badge: '/vite.svg',

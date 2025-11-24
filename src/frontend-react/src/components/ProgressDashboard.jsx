@@ -60,11 +60,56 @@ const ProgressDashboard = ({ habitos, completedHabits }) => {
     if (filtro === 'todos') return habitos;
 
     return habitos.filter(habito => {
+      // Buscar el progreso del hábito
       const progreso = progresos.find(p => p.id === habito.id);
-      if (!progreso || !progreso.semanal) return false;
+      
+      // Si no hay datos de progreso, excluir del filtro
+      if (!progreso || !progreso.semanal) {
+        console.log(`⚠️ No se encontró progreso semanal para: ${habito.name}`);
+        return false;
+      }
 
-      const porcentaje = progreso.semanal.progreso_semanal;
+      // Recalcular el porcentaje correcto basado en la frecuencia del hábito
+      const completados = progreso.semanal.completados || 0;
+      let total = 0;
 
+      // Calcular el total esperado según la frecuencia
+      if (habito.frequency === 'diario' || habito.frequency === 'Diario') {
+        total = 7; // Toda la semana
+      } else if (habito.frequency === 'semanal' || habito.frequency === 'Semanal') {
+        total = habito.days && habito.days.length > 0 ? habito.days.length : 1;
+      } else if (habito.frequency === 'mensual' || habito.frequency === 'Mensual') {
+        // Para mensuales, verificar cuántos días del mes caen en esta semana
+        if (progreso.semanal.inicio_semana && progreso.semanal.fin_semana && habito.days) {
+          const [yearInicio, mesInicio, diaInicio] = progreso.semanal.inicio_semana.split('-').map(Number);
+          const [yearFin, mesFin, diaFin] = progreso.semanal.fin_semana.split('-').map(Number);
+          
+          const fechaInicio = new Date(yearInicio, mesInicio - 1, diaInicio);
+          const fechaFin = new Date(yearFin, mesFin - 1, diaFin);
+          
+          let contadorDias = 0;
+          const fechaActual = new Date(fechaInicio);
+          
+          while (fechaActual <= fechaFin) {
+            const diaDelMes = fechaActual.getDate();
+            if (habito.days.includes(diaDelMes)) {
+              contadorDias++;
+            }
+            fechaActual.setDate(fechaActual.getDate() + 1);
+          }
+          
+          total = contadorDias;
+        } else {
+          total = progreso.semanal.total || 0;
+        }
+      }
+
+      // Calcular el porcentaje real
+      const porcentaje = total > 0 ? Math.round((completados / total) * 100) : 0;
+      
+      console.log(`📊 ${habito.name}: ${completados}/${total} = ${porcentaje}% (Filtro: ${filtro})`);
+
+      // Aplicar filtros
       if (filtro === 'alto') return porcentaje >= 70;
       if (filtro === 'medio') return porcentaje >= 40 && porcentaje < 70;
       if (filtro === 'bajo') return porcentaje < 40;

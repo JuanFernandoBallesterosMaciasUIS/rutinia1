@@ -176,9 +176,7 @@ const EditHabitModal = ({ isOpen, onClose, onSubmit, onDelete, habitData }) => {
   };
 
   const handleDelete = () => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este hábito?')) {
-      onDelete(formData.id);
-    }
+    onDelete(formData.id);
   };
 
   const getIconColorClass = (iconName) => {

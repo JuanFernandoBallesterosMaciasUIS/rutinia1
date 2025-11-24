@@ -1,6 +1,6 @@
 function Footer({ onAddHabit, currentView, onChangeView }) {
   return (
-    <footer className="fixed bottom-0 left-0 right-0 lg:left-64 bg-card-light dark:bg-card-dark p-2 sm:p-3 shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.1)] z-30 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
+    <footer className="fixed bottom-0 left-0 right-0 lg:left-72 bg-card-light dark:bg-card-dark p-2 sm:p-3 shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.1)] z-30 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-around items-center">
           <button 
