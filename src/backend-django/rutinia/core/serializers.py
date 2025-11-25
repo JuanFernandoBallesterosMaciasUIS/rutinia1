@@ -112,14 +112,35 @@ class CategoriaSerializer(mon.DocumentSerializer):
 
 class HabitoSerializer(mon.DocumentSerializer):
     notificaciones = NotificacionSerializer(many=True, required=False)
+    categoria = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     
     class Meta:
         model = Habito
         fields = '__all__'
 
+    def _get_or_create_categoria(self, categoria_nombre):
+        """Buscar o crear categoría por nombre"""
+        if not categoria_nombre or categoria_nombre.strip() == '':
+            return None
+        
+        # Buscar categoría existente (insensible a mayúsculas/minúsculas)
+        try:
+            categoria = Categoria.objects.get(nombre__iexact=categoria_nombre)
+            return categoria
+        except Categoria.DoesNotExist:
+            # Crear nueva categoría si no existe
+            categoria = Categoria(nombre=categoria_nombre.lower())
+            categoria.save()
+            return categoria
+
     def create(self, validated_data):
-        """Crear hábito con notificaciones embebidas"""
+        """Crear hábito con notificaciones embebidas y categoría"""
         notificaciones_data = validated_data.pop('notificaciones', [])
+        categoria_nombre = validated_data.pop('categoria', None)
+        
+        # Resolver categoría
+        if categoria_nombre:
+            validated_data['categoria'] = self._get_or_create_categoria(categoria_nombre)
         
         # Crear el hábito
         habito = Habito(**validated_data)
@@ -134,8 +155,13 @@ class HabitoSerializer(mon.DocumentSerializer):
         return habito
     
     def update(self, instance, validated_data):
-        """Actualizar hábito con notificaciones embebidas"""
+        """Actualizar hábito con notificaciones embebidas y categoría"""
         notificaciones_data = validated_data.pop('notificaciones', None)
+        categoria_nombre = validated_data.pop('categoria', None)
+        
+        # Resolver categoría si se proporciona
+        if categoria_nombre is not None:
+            instance.categoria = self._get_or_create_categoria(categoria_nombre)
         
         # Actualizar campos básicos
         for attr, value in validated_data.items():
@@ -161,9 +187,11 @@ class HabitoSerializer(mon.DocumentSerializer):
         if instance.usuario:
             data['usuario'] = str(instance.usuario.id)
         
-        # Categoría puede ir completa (no tiene referencias circulares)
+        # Devolver solo el nombre de la categoría (no el objeto completo)
         if instance.categoria:
-            data['categoria'] = CategoriaSerializer(instance.categoria).data
+            data['categoria'] = instance.categoria.nombre
+        else:
+            data['categoria'] = None
         
         # Asegurar que las notificaciones se serialicen correctamente
         if instance.notificaciones:

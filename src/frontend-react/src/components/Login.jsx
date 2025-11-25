@@ -356,7 +356,7 @@ const Login = ({ onLoginSuccess }) => {
                 </label>
                 <div className="relative">
                   <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">
-                    lock_check
+                    lock_outline
                   </span>
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}

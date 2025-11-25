@@ -1,0 +1,14 @@
+{
+  "buildCommand": "cd src/frontend-react && npm install && npm run build",
+  "outputDirectory": "src/frontend-react/dist",
+  "framework": "vite",
+  "env": {
+    "VITE_API_URL": "https://rutinia1-production.up.railway.app/api"
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -2,7 +2,7 @@ import { apiClient } from './authService';
 import { getLocalDateString } from './dateHelpers';
 
 // Configuración de la API
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // ==================== AUTENTICACIÓN Y USUARIOS ====================
 
@@ -309,8 +309,8 @@ export const mapHabitoToBackend = (frontendHabito, usuarioId = '507f1f77bcf86cd7
     data.descripcion = frontendHabito.description;
   }
   
-  // Solo agregar categoría si existe Y es un ObjectId válido (24 caracteres hex)
-  if (frontendHabito.category && frontendHabito.category.length === 24) {
+  // Agregar categoría si existe (enviar el nombre, el backend se encarga de buscar/crear)
+  if (frontendHabito.category && frontendHabito.category.trim() !== '') {
     data.categoria = frontendHabito.category;
   }
   
@@ -333,27 +333,10 @@ export const mapHabitoToFrontend = (backendHabito) => {
     return lower;
   };
 
-  // Normalizar categoría: Extraer nombre si es objeto, convertir a lowercase con guiones
-  const normalizeCategory = (cat) => {
-    console.log('🔍 Categoría del backend:', cat);
-    console.log('🔍 Tipo de categoría:', typeof cat);
-    
-    if (!cat) return '';
-    
-    // Si es un objeto con nombre, usar el nombre
-    const categoryName = typeof cat === 'object' ? cat.nombre : cat;
-    if (!categoryName) return '';
-    
-    // Convertir a lowercase y reemplazar espacios con guiones
-    const normalized = categoryName.toLowerCase().replace(/\s+/g, '-');
-    console.log('✅ Categoría normalizada:', normalized);
-    return normalized;
-  };
-
   return {
     id: backendHabito.id,
     name: backendHabito.nombre,
-    category: normalizeCategory(backendHabito.categoria),
+    category: backendHabito.categoria || '',
     // ✨ Ahora icon y color vienen del backend
     icon: backendHabito.icono || 'fitness_center',
     color: backendHabito.color || 'blue',
