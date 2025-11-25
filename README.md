@@ -43,6 +43,32 @@ La documentación completa del proyecto está disponible en la [Wiki](https://gi
 
 ---
 
+## Demo y Capturas
+
+![funcionamiento](docs/React/funcionamiento.gif)
+
+### Habitos del día
+
+![Habitos del dia](docs/React/Habitos_hoy.png)
+
+### Calendario
+
+![Calendario](docs/React/Calendario.png)
+
+### Lista de habitos
+
+![Lista_habitos](docs/React/Lista_habitos.png)
+
+### Dashboard
+
+![Dashboard](docs/React/Dashboard.png)
+
+### Notificaciones
+
+![Notificaciones](docs/React/Notificaciones.png)
+
+---
+
 ## Instalación y configuración
 
 ### version Django y react
@@ -257,32 +283,6 @@ Rutinia-1.0/
 - Acceso desde dispositivos en red local
 - Sincronización automática con MongoDB
 - Categorización de hábitos
-
----
-
-## Demo y Capturas
-
-![funcionamiento](docs/React/funcionamiento.gif)
-
-### Habitos del día
-
-![Habitos del dia](docs/React/Habitos_hoy.png)
-
-### Calendario
-
-![Calendario](docs/React/Calendario.png)
-
-### Lista de habitos
-
-![Lista_habitos](docs/React/Lista_habitos.png)
-
-### Dashboard
-
-![Dashboard](docs/React/Dashboard.png)
-
-### Notificaciones
-
-![Notificaciones](docs/React/Notificaciones.png)
 
 ---
 
