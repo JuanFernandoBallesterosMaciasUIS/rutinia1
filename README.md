@@ -299,20 +299,6 @@ Rutinia-1.0/
 - [x] Sistema de notificaciones
 - [x] Graficos de progreso
 - [ ] Integración con google calendar
-
-### Versión 1.1 (Próximamente)
-- [ ] Perfil de usuario
-- [ ] Edición de categorías desde UI
-- [ ] Estadísticas y gráficos de progreso
-- [ ] Sistema de recordatorios
-
-### Versión 2.0 (Futuro)
-- [ ] Modo offline con sincronización
-- [ ] Exportar datos a PDF/CSV
-- [ ] Compartir hábitos con otros usuarios
-- [ ] Gamificación (logros, rachas)
-- [ ] PWA (Progressive Web App)
-
 ---
 
 ## Contribución
@@ -328,15 +314,6 @@ Rutinia-1.0/
 5. **Commit** con mensajes descriptivos: `git commit -m 'feat: agregar funcionalidad X'`
 6. **Push** a tu rama: `git push origin feature/nueva-funcionalidad`
 7. **Abre un Pull Request** explicando tus cambios
-
-### Convenciones de Commits:
-
-- `feat:` Nueva funcionalidad
-- `fix:` Corrección de errores
-- `docs:` Cambios en documentación
-- `style:` Formateo, espacios, etc.
-- `refactor:` Refactorización de código
-- `test:` Agregar o modificar tests
 
 > Para más detalles, consulta la sección [Cómo Colaborar](https://github.com/JuanFernandoBallesterosMaciasUIS/Rutinia-1.0/wiki) en la Wiki.
 
@@ -360,7 +337,7 @@ Rutinia-1.0/
 ## Estado del Proyecto
 
 **Versión:** 1.0 (Django + React + MongoDB)  
-**Última Actualización:** Octubre 2025  
+**Última Actualización:** Noviembre 2025  
 **Estado:** En Desarrollo Activo  
 **Contexto:** Proyecto académico - UIS (Universidad Industrial de Santander)
 
