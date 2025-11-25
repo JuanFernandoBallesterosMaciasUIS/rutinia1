@@ -87,19 +87,7 @@ cd src/backend-django/rutinia
 pip install -r requirements.txt
 ```
 
-##### 3. Crear Datos de Prueba (Opcional)
-
-```bash
-cd rutinia
-..\venv\Scripts\python.exe create_sample_habits.py
-```
-
-Esto creará:
-- 1 usuario de prueba (demo@rutinia.com)
-- 1 categoría (Salud)
-- 3 hábitos de ejemplo
-
-##### 4. Configurar Frontend (React + Vite)
+##### 3. Configurar Frontend (React + Vite)
 
 ```bash
 # Desde la raíz del proyecto
@@ -110,19 +98,6 @@ npm install
 ```
 
 #### Ejecución del Proyecto
-
-##### Opción 1: Script Automático (Windows - Recomendado)
-
-```bash
-cd src
-.\start-all.bat
-```
-
-Este script abre automáticamente:
-- Django en `http://localhost:8000`
-- React en `http://localhost:5173`
-
-##### Opción 2: Manual (Dos Terminales)
 
 **Terminal 1 - Backend:**
 ```bash
@@ -144,36 +119,6 @@ npm run dev
 - **Aplicación Web:** `http://localhost:5173`
 - **API REST:** `http://localhost:8000/api/`
 - **Desde celular (misma WiFi):** Buscar URL "Network" en la terminal de React
-
-#### API Endpoints Principales
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| `GET` | `/api/habitos/` | Listar todos los hábitos |
-| `POST` | `/api/habitos/` | Crear nuevo hábito |
-| `GET/PUT/DELETE` | `/api/habitos/{id}/` | Ver/Editar/Eliminar hábito |
-| `GET/POST` | `/api/categorias/` | Gestionar categorías |
-| `GET/POST` | `/api/registros/` | Registros de hábitos completados |
-
-#### Solución de Problemas
-
-**Error: "ModuleNotFoundError: No module named 'django'"**
-```bash
-cd src/backend-django
-.\venv\Scripts\Activate.ps1
-pip install -r requeriments.txt
-```
-
-**Error: "CORS policy blocked"**
-- Verifica que `django-cors-headers` esté instalado
-- Confirma que `'corsheaders'` esté en `INSTALLED_APPS` en `settings.py`
-
-**No se muestran hábitos:**
-- Verifica que Django esté corriendo: `http://localhost:8000/api/habitos/`
-- Revisa la consola del navegador (F12)
-- Ejecuta el script de datos de prueba
-
-**Documentación Completa:** Ver [`src/COMO_CORRER_PROYECTO.md`](src/COMO_CORRER_PROYECTO.md)
 
 ### version Springboot
 ##### 1. Clonar el repositorio
@@ -317,13 +262,27 @@ Rutinia-1.0/
 
 ## Demo y Capturas
 
-### version Springboot
-![pagina_bienvenida](docs/screenshots/Springboot/Bienvenida.png)
-![pagina_Login](docs/screenshots/Springboot/Login.png)
-![pagina_Categorias](docs/screenshots/Springboot/Categorias.png)
-![pagina_Habitos](docs/screenshots/Springboot/Habitos.png)
-![pagina_Usuarios](docs/screenshots/Springboot/Usuarios.png)
-![Modelo entidad relación](docs/arquitectura/Modelo-Entidad-Relacion/MER_Extendido.jpg)
+![funcionamiento](docs/React/funcionamiento.gif)
+
+### Habitos del día
+
+![Habitos del dia](docs/React/Habitos_hoy.png)
+
+### Calendario
+
+![Calendario](docs/React/Calendario.png)
+
+### Lista de habitos
+
+![Lista_habitos](docs/React/Lista_habitos.png)
+
+### Dashboard
+
+![Dashboard](docs/React/Dashboard.png)
+
+### Notificaciones
+
+![Notificaciones](docs/React/Notificaciones.png)
 
 ---
 
