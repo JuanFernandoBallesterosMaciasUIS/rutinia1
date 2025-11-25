@@ -29,7 +29,7 @@ La documentación completa del proyecto está disponible en la [Wiki](https://gi
 - [Instalación y Configuración](#instalación-y-configuración)
   - [Requisitos Previos](#requisitos-previos)
   - [Instalación Paso a Paso](#instalación-paso-a-paso)
-    - [Version Django + React](#version-Django-+-react)  
+    - [Version Django + React](#version-Django-y-react)  
     - [Version Springboot](#version-Springboot) 
   - [Ejecución del Proyecto](#ejecución-del-proyecto)
   - [Solución de Problemas](#solución-de-problemas)
@@ -45,7 +45,7 @@ La documentación completa del proyecto está disponible en la [Wiki](https://gi
 
 ## Instalación y configuración
 
-### version Django + react
+### version Django y react
 
 #### Requisitos Previos
 
@@ -83,6 +83,7 @@ python -m venv venv
 source venv/bin/activate
 
 # Instalar dependencias
+cd src/backend-django/rutinia
 pip install -r requirements.txt
 ```
 
@@ -245,8 +246,8 @@ Rutinia-1.0/
 │   │   │   ├── rutinia/         # Configuración (settings.py, urls.py)
 │   │   │   ├── manage.py
 │   │   │   └── create_sample_habits.py  # Script de datos de prueba
+│   │   │   └── requeriments.txt  # Script de datos de prueba
 │   │   ├── venv/                # Entorno virtual Python
-│   │   └── requeriments.txt
 │   │
 │   ├── frontend-react/          # Frontend React
 │   │   ├── src/
@@ -335,9 +336,12 @@ Rutinia-1.0/
 - [x] Calendario interactivo
 - [x] Modo oscuro/claro
 - [x] Responsive design
+- [x] Autenticación de usuarios (login/registro)
+- [x] Sistema de notificaciones
+- [x] Graficos de progreso
+- [ ] Integración con google calendar
 
 ### Versión 1.1 (Próximamente)
-- [ ] Autenticación de usuarios (login/registro)
 - [ ] Perfil de usuario
 - [ ] Edición de categorías desde UI
 - [ ] Estadísticas y gráficos de progreso
